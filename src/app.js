@@ -38,7 +38,7 @@ app.use('/api', (req, res) => {
 
 // Central error handler (SAD 4.4): same JSON shape everywhere, never logs passwords or tokens
 app.use((err, req, res, next) => {
-  console.error(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}: ${err.message}`);
+  if (process.env.NODE_ENV !== 'test') console.error(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}: ${err.message}`);
   const status = err.status || 500;
   res.status(status).json({
     status: 'error',
