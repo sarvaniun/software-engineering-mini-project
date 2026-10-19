@@ -82,6 +82,32 @@ describe('PUT /api/students/:id', () => {
     expect(res.body.status).toBe('success');
   });
 
+  it('saves cleared optional fields as null', async () => {
+    db.query.mockResolvedValueOnce([{ affectedRows: 1 }]);
+    const res = await request(app).put('/api/students/1')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ name: 'Updated Name', branch: 'ECE', semester: 3, email: 'u@x.com', phone: '' });
+    expect(res.statusCode).toBe(200);
+    expect(res.body.student.phone).toBeNull();
+  });
+
+  it('returns 404 for a non-existent id', async () => {
+    db.query.mockResolvedValueOnce([[]]);
+    const res = await request(app).put('/api/students/999')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ name: 'X' });
+    expect(res.statusCode).toBe(404);
+    expect(res.body.errorCode).toBe('STUDENT_NOT_FOUND');
+  });
+
+  it('returns 400 for a non-numeric id', async () => {
+    const res = await request(app).put('/api/students/abc')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ name: 'X' });
+    expect(res.statusCode).toBe(400);
+    expect(res.body.errorCode).toBe('INVALID_ID');
+  });
+
   it('returns 403 for a non-admin', async () => {
     const studentToken = jwt.sign({ id: 7, role: 'student', name: 'S' }, 'test-secret');
     const res = await request(app).put('/api/students/1')
