@@ -27,6 +27,34 @@ async function listStudents() {
   return rowsOf('SELECT id, user_id, roll_no, name, branch, semester, email, phone, is_active FROM students ORDER BY id', []);
 }
 
+async function getStudentById(id) {
+  const rows = await rowsOf('SELECT id, user_id, roll_no, name, branch, semester, email, phone, is_active FROM students WHERE id = ?', [id]);
+  if (!rows.length) {
+    throw new AppError(404, 'STUDENT_NOT_FOUND', 'Student not found');
+  }
+  return rows[0];
+}
+
+async function updateStudent(id, data, adminId) {
+  const name = data.name !== undefined ? String(data.name).trim() : null;
+  const branch = data.branch !== undefined ? String(data.branch).trim() : null;
+  const semester = data.semester !== undefined && data.semester !== null && data.semester !== ''
+    ? Number(data.semester) : null;
+  const email = data.email !== undefined ? (String(data.email).trim() || null) : null;
+  const phone = data.phone !== undefined ? (String(data.phone).trim() || null) : null;
+
+  if (semester !== null && (!Number.isInteger(semester) || semester < 1 || semester > 8)) {
+    throw new AppError(400, 'INVALID_SEMESTER', 'semester must be an integer between 1 and 8');
+  }
+
+  await db.query(
+    'UPDATE students SET name = COALESCE(?, name), branch = COALESCE(?, branch), semester = COALESCE(?, semester), email = COALESCE(?, email), phone = COALESCE(?, phone), updated_by = ? WHERE id = ?',
+    [name, branch, semester, email, phone, adminId || null, id]
+  );
+
+  return { id: Number(id), name: data.name !== undefined ? data.name : undefined, branch: data.branch, semester: data.semester !== undefined ? Number(data.semester) : undefined, email: data.email, phone: data.phone };
+}
+
 async function addStudent(data, adminId) {
   const roll_no = (data.roll_no || data.rollNo || '').trim();
   const name = (data.name || data.full_name || data.fullName || '').trim();
@@ -94,4 +122,4 @@ async function addStudent(data, adminId) {
   };
 }
 
-module.exports = { listStudents, addStudent, DEFAULT_STUDENT_PASSWORD };
+module.exports = { listStudents, getStudentById, addStudent, updateStudent, DEFAULT_STUDENT_PASSWORD };
