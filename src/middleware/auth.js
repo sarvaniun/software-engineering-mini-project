@@ -1,4 +1,5 @@
-// Auth middleware (SAD 4.1): every request except login carries a JWT.
+// Auth middleware (SAD 4.1, SRSSR-003): the SERVER checks login and role on every request,
+// not just the UI hiding buttons.
 const jwt = require('jsonwebtoken');
 const AppError = require('../utils/AppError');
 
@@ -16,9 +17,22 @@ function verifyToken(req, res, next) {
   }
 }
 
-// PLACEHOLDER until SRSSR-003 (#9): lets every logged-in role through.
+// SRSSR-003: only let the listed roles through. Wrong role -> 403.
 function requireRole(...roles) {
-  return (req, res, next) => next();
+  return (req, res, next) => {
+    if (!req.user) {
+      return next(new AppError(401, 'NO_TOKEN', 'Please log in first'));
+    }
+    if (!roles.includes(req.user.role)) {
+      return next(new AppError(403, 'FORBIDDEN', 'You do not have permission to do this'));
+    }
+    next();
+  };
 }
 
-module.exports = { verifyToken, requireRole };
+// Shortcut for teammates: router.post('/', allow('admin'), handler)
+function allow(...roles) {
+  return [verifyToken, requireRole(...roles)];
+}
+
+module.exports = { verifyToken, requireRole, allow };
