@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Student · Student Record System</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body data-role="student">
+  <header class="topbar">
+    <h1>Student Dashboard</h1>
+    <div><span class="who" id="user-name"></span><button class="btn-secondary" id="logout">Logout</button></div>
+  </header>
+  <main>
+    <section class="panel" id="profile-panel">
+      <h2>My Profile</h2>
+      <p class="placeholder">Profile, attendance and marks: #13 (Vinaayak)</p>
+    </section>
+    <section class="panel" id="attendance-panel">
+      <h2>My Attendance</h2>
+      <p class="placeholder">Attendance %: #13 (Vinaayak)</p>
+    </section>
+    <section class="panel" id="marks-panel">
+      <h2>My Marks</h2>
+      <p class="placeholder">Marks, GPA and mark sheet: #13, #25, #26</p>
+    </section>
+  </main>
+  <script src="/js/api.js"></script>
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>
