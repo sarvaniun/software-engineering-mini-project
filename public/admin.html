@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin · Student Record System</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body data-role="admin">
+  <header class="topbar">
+    <h1>Admin Dashboard</h1>
+    <div><span class="who" id="user-name"></span><button class="btn-secondary" id="logout">Logout</button></div>
+  </header>
+  <main>
+    <section class="panel" id="students-panel">
+      <h2>Students</h2>
+      <p class="placeholder">Add / edit / deactivate / search students: #10, #11, #12, #19 (Vinaayak)</p>
+    </section>
+    <section class="panel" id="reports-panel">
+      <h2>Reports</h2>
+      <p class="placeholder">Branch/class report: #27 (Eshwar)</p>
+    </section>
+  </main>
+  <script src="/js/api.js"></script>
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>

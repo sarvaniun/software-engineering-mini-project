@@ -3,10 +3,31 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Student Record System</title>
+  <title>Login · Student Record System</title>
+  <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-  <h1>Student Record System</h1>
-  <p>Login page coming in Sprint 1 (SRSF-001-UI).</p>
+  <div class="login-wrap">
+    <form class="card" id="login-form" novalidate>
+      <h1>Student Record System</h1>
+      <p class="sub">Sign in as Student, Faculty or Admin</p>
+
+      <label for="username">Username</label>
+      <input id="username" name="username" autocomplete="username" required>
+
+      <label for="password">Password</label>
+      <div class="pw-row">
+        <!-- SRSF-002: type="password" masks the characters -->
+        <input id="password" name="password" type="password" autocomplete="current-password" required>
+        <button type="button" class="btn-secondary" id="toggle-password" aria-pressed="false">Show</button>
+      </div>
+
+      <button type="submit" class="btn-primary">Log in</button>
+      <div class="error" id="error" role="alert" hidden></div>
+    </form>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/login.js"></script>
 </body>
 </html>
