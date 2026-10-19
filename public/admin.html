@@ -59,35 +59,36 @@
       const tbody = document.querySelector('#students-table tbody');
       let students = [];
 
+      tbody.addEventListener('click', async (e) => {
+        const btn = e.target.closest('button[data-action]');
+        if (!btn) return;
+        const s = students.find(x => String(x.id) === btn.dataset.id);
+        if (!s) return;
+        if (btn.dataset.action === 'edit') {
+          editForm.id.value = s.id;
+          editForm.name.value = s.name || '';
+          editForm.branch.value = s.branch || '';
+          editForm.semester.value = s.semester || '';
+          editForm.email.value = s.email || '';
+          editForm.phone.value = s.phone || '';
+          editMsg.textContent = 'Loaded student ' + s.roll_no;
+        } else if (btn.dataset.action === 'deactivate') {
+          try {
+            await api('/students/' + s.id + '/deactivate', { method: 'PATCH' });
+            addMsg.textContent = 'Student deactivated';
+            await loadStudents();
+          } catch (e) { addMsg.textContent = e.message; }
+        }
+      });
+
       async function loadStudents() {
         try {
           const show = document.getElementById('show-inactive').checked;
           const res = await api('/students' + (show ? '?inactive=1' : ''));
           students = res.students || [];
           tbody.innerHTML = students.map(s =>
-            `<tr><td>${s.id}</td><td>${s.roll_no}</td><td>${s.name}</td><td>${s.branch}</td><td>${s.semester}</td><td>${s.email || ''}</td><td>${s.phone || ''}</td><td>${s.is_active ? 'Active' : 'Inactive'}</td><td><button data-id="${s.id}" data-action="edit">Edit</button>${s.is_active ? ' <button data-id="${s.id}" data-action="deactivate">Deactivate</button>' : ''}</td></tr>`
+            `<tr><td>${s.id}</td><td>${s.roll_no}</td><td>${s.name}</td><td>${s.branch}</td><td>${s.semester}</td><td>${s.email || ''}</td><td>${s.phone || ''}</td><td>${s.is_active ? 'Active' : 'Inactive'}</td><td><button type="button" data-id="${s.id}" data-action="edit">Edit</button>${s.is_active ? ' <button type="button" data-id="${s.id}" data-action="deactivate">Deactivate</button>' : ''}</td></tr>`
           ).join('');
-          tbody.querySelectorAll('button').forEach(btn => {
-            btn.addEventListener('click', async () => {
-              const s = students.find(x => String(x.id) === btn.dataset.id);
-              if (!s) return;
-              if (btn.dataset.action === 'edit') {
-                editForm.id.value = s.id;
-                editForm.name.value = s.name || '';
-                editForm.branch.value = s.branch || '';
-                editForm.semester.value = s.semester || '';
-                editForm.email.value = s.email || '';
-                editForm.phone.value = s.phone || '';
-                editMsg.textContent = 'Loaded student ' + s.roll_no;
-              } else if (btn.dataset.action === 'deactivate') {
-                try {
-                  await api('/students/' + s.id + '/deactivate', { method: 'PATCH' });
-                  addMsg.textContent = 'Student deactivated';
-                  await loadStudents();
-                } catch (e) { addMsg.textContent = e.message; }
-              }
-            });
-          });
         } catch (e) { addMsg.textContent = e.message; }
       }
 
