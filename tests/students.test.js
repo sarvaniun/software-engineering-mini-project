@@ -72,6 +72,32 @@ describe('GET /api/students/:id', () => {
   });
 });
 
+describe('PATCH /api/students/:id/deactivate', () => {
+  it('deactivates a student and returns 200', async () => {
+    db.query.mockResolvedValueOnce([{ affectedRows: 1 }]);
+    const res = await request(app).patch('/api/students/1/deactivate')
+      .set('Authorization', `Bearer ${adminToken}`);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.status).toBe('success');
+  });
+
+  it('returns 403 for a non-admin', async () => {
+    const studentToken = jwt.sign({ id: 7, role: 'student', name: 'S' }, 'test-secret');
+    const res = await request(app).patch('/api/students/1/deactivate')
+      .set('Authorization', `Bearer ${studentToken}`);
+    expect(res.statusCode).toBe(403);
+  });
+});
+
+describe('GET /api/students?inactive=1', () => {
+  it('includes inactive students when requested', async () => {
+    db.query.mockResolvedValueOnce([[{ id: 2, roll_no: 'R2', name: 'N2', branch: 'CSE', semester: 5, email: null, phone: null, is_active: 0 }]]);
+    const res = await request(app).get('/api/students?inactive=1').set('Authorization', `Bearer ${adminToken}`);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.students).toHaveLength(1);
+  });
+});
+
 describe('PUT /api/students/:id', () => {
   it('updates a student and returns 200', async () => {
     db.query.mockResolvedValueOnce([{ affectedRows: 1 }]);

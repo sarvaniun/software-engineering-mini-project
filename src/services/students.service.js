@@ -23,8 +23,16 @@ function isDuplicate(err) {
     /duplicate/i.test(err.message || '')));
 }
 
-async function listStudents() {
-  return rowsOf('SELECT id, user_id, roll_no, name, branch, semester, email, phone, is_active FROM students ORDER BY id', []);
+async function listStudents(showInactive) {
+  if (showInactive) {
+    return rowsOf('SELECT id, user_id, roll_no, name, branch, semester, email, phone, is_active FROM students ORDER BY id', []);
+  }
+  return rowsOf('SELECT id, user_id, roll_no, name, branch, semester, email, phone, is_active FROM students WHERE is_active = 1 ORDER BY id', []);
+}
+
+async function deactivateStudent(id, adminId) {
+  await db.query('UPDATE students SET is_active = 0, updated_by = ? WHERE id = ?', [adminId || null, id]);
+  return { id: Number(id), is_active: 0 };
 }
 
 async function getStudentById(id) {
@@ -184,4 +192,4 @@ async function addStudent(data, adminId) {
   };
 }
 
-module.exports = { listStudents, getStudentById, addStudent, updateStudent, DEFAULT_STUDENT_PASSWORD };
+module.exports = { listStudents, getStudentById, addStudent, updateStudent, deactivateStudent, DEFAULT_STUDENT_PASSWORD };
