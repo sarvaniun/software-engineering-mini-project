@@ -82,13 +82,31 @@ async function updateStudent(id, data, adminId) {
     if (first.affectedRows === 0) {
       throw new AppError(404, 'STUDENT_NOT_FOUND', 'Student not found');
     }
+    const nameMissing = data.name !== undefined && !String(data.name).trim();
+    const branchMissing = data.branch !== undefined && !String(data.branch).trim();
+    const semesterMissing = data.semester !== undefined && (data.semester === null || data.semester === '');
+    if (nameMissing || branchMissing || semesterMissing) {
+      throw new AppError(400, 'MISSING_FIELDS', 'Name, branch and semester are required');
+    }
     const phone = data.phone !== undefined ? (String(data.phone).trim() || null) : undefined;
     const email = data.email !== undefined ? (String(data.email).trim() || null) : undefined;
+    let semester;
+    if (data.semester !== undefined) {
+      semester = Number(data.semester);
+      if (Number.isNaN(semester)) {
+        throw new AppError(400, 'INVALID_SEMESTER', 'semester must be an integer between 1 and 8');
+      }
+    } else {
+      semester = undefined;
+    }
+    if (semester !== null && semester !== undefined && (!Number.isInteger(semester) || semester < 1 || semester > 8)) {
+      throw new AppError(400, 'INVALID_SEMESTER', 'semester must be an integer between 1 and 8');
+    }
     return {
       id: numericId,
       name: data.name !== undefined ? String(data.name).trim() : undefined,
       branch: data.branch !== undefined ? String(data.branch).trim() : undefined,
-      semester: data.semester !== undefined ? (data.semester === '' || data.semester === null ? null : Number(data.semester)) : undefined,
+      semester,
       email,
       phone,
     };
@@ -99,6 +117,13 @@ async function updateStudent(id, data, adminId) {
     throw new AppError(404, 'STUDENT_NOT_FOUND', 'Student not found');
   }
   const existing = existingRows[0];
+
+  const nameMissing = data.name !== undefined && !String(data.name).trim();
+  const branchMissing = data.branch !== undefined && !String(data.branch).trim();
+  const semesterMissing = data.semester !== undefined && (data.semester === null || data.semester === '');
+  if (nameMissing || branchMissing || semesterMissing) {
+    throw new AppError(400, 'MISSING_FIELDS', 'Name, branch and semester are required');
+  }
 
   const sets = [];
   const params = [];
