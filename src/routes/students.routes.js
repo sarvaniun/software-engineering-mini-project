@@ -6,10 +6,22 @@ const AppError = require('../utils/AppError');
 const router = express.Router();
 
 // GET /api/students -> list of student records (admin/faculty)
+// ?inactive=1 (or showInactive=1) includes deactivated students.
 router.get('/', allow('admin', 'faculty'), async (req, res, next) => {
   try {
-    const students = await studentsService.listStudents();
+    const showInactive = req.query.inactive === '1' || req.query.showInactive === '1' || req.query.includeInactive === '1';
+    const students = await studentsService.listStudents(showInactive);
     res.json({ status: 'success', students, data: students, records: students });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// PATCH /api/students/:id/deactivate -> soft delete (admin only)
+router.patch('/:id/deactivate', allow('admin'), async (req, res, next) => {
+  try {
+    const student = await studentsService.deactivateStudent(req.params.id, req.user.id);
+    res.json({ status: 'success', student });
   } catch (err) {
     next(err);
   }

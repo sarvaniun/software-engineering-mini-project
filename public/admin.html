@@ -40,7 +40,8 @@
     </section>
     <section class="panel" id="students-panel">
       <h2>Students</h2>
-      <table id="students-table"><thead><tr><th>ID</th><th>Roll no</th><th>Name</th><th>Branch</th><th>Sem</th><th>Email</th><th>Phone</th><th></th></tr></thead><tbody></tbody></table>
+      <label><input type="checkbox" id="show-inactive"> Show inactive</label>
+      <table id="students-table"><thead><tr><th>ID</th><th>Roll no</th><th>Name</th><th>Branch</th><th>Sem</th><th>Email</th><th>Phone</th><th>Status</th><th></th></tr></thead><tbody></tbody></table>
     </section>
     <section class="panel" id="reports-panel">
       <h2>Reports</h2>
@@ -60,26 +61,16 @@
 
       async function loadStudents() {
         try {
-          const res = await api('/students');
+          const show = document.getElementById('show-inactive').checked;
+          const res = await api('/students' + (show ? '?inactive=1' : ''));
           students = res.students || [];
           tbody.innerHTML = students.map(s =>
-            `<tr><td>${s.id}</td><td>${s.roll_no}</td><td>${s.name}</td><td>${s.branch}</td><td>${s.semester}</td><td>${s.email || ''}</td><td>${s.phone || ''}</td><td><button data-id="${s.id}">Edit</button></td></tr>`
+            `<tr><td>${s.id}</td><td>${s.roll_no}</td><td>${s.name}</td><td>${s.branch}</td><td>${s.semester}</td><td>${s.email || ''}</td><td>${s.phone || ''}</td><td>${s.is_active ? 'Active' : 'Inactive'}</td><td><button type="button" onclick="window.__editStudent && window.__editStudent(${s.id})">Edit</button>${s.is_active ? ' <button type="button" onclick="window.__deactivateStudent && window.__deactivateStudent(' + s.id + ')">Deactivate</button>' : ''}</td></tr>`
           ).join('');
-          tbody.querySelectorAll('button').forEach(btn => {
-            btn.addEventListener('click', () => {
-              const s = students.find(x => String(x.id) === btn.dataset.id);
-              if (!s) return;
-              editForm.id.value = s.id;
-              editForm.name.value = s.name || '';
-              editForm.branch.value = s.branch || '';
-              editForm.semester.value = s.semester || '';
-              editForm.email.value = s.email || '';
-              editForm.phone.value = s.phone || '';
-              editMsg.textContent = 'Loaded student ' + s.roll_no;
-            });
-          });
         } catch (e) { addMsg.textContent = e.message; }
       }
+
+      document.getElementById('show-inactive').addEventListener('change', loadStudents);
 
       addForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -114,6 +105,26 @@
           editMsg.textContent = e.message;
         }
       });
+
+      window.__editStudent = (id) => {
+        const s = students.find(x => String(x.id) === String(id));
+        if (!s) return;
+        editForm.id.value = s.id;
+        editForm.name.value = s.name || '';
+        editForm.branch.value = s.branch || '';
+        editForm.semester.value = s.semester || '';
+        editForm.email.value = s.email || '';
+        editForm.phone.value = s.phone || '';
+        editMsg.textContent = 'Loaded student ' + s.roll_no;
+      };
+
+      window.__deactivateStudent = async (id) => {
+        try {
+          await api('/students/' + id + '/deactivate', { method: 'PATCH' });
+          addMsg.textContent = 'Student deactivated';
+          await loadStudents();
+        } catch (e) { addMsg.textContent = e.message; }
+      };
 
       setTimeout(loadStudents, 0);
     })();

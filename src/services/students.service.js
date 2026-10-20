@@ -23,8 +23,38 @@ function isDuplicate(err) {
     /duplicate/i.test(err.message || '')));
 }
 
-async function listStudents() {
-  return rowsOf('SELECT id, user_id, roll_no, name, branch, semester, email, phone, is_active FROM students ORDER BY id', []);
+async function listStudents(showInactive) {
+  if (showInactive) {
+    return rowsOf('SELECT id, user_id, roll_no, name, branch, semester, email, phone, is_active FROM students ORDER BY id', []);
+  }
+  return rowsOf('SELECT id, user_id, roll_no, name, branch, semester, email, phone, is_active FROM students WHERE is_active = 1 ORDER BY id', []);
+}
+
+async function deactivateStudent(id, adminId) {
+  const numericId = Number(id);
+  if (!Number.isInteger(numericId) || numericId < 1) {
+    throw new AppError(400, 'INVALID_ID', 'Student id must be a positive integer');
+  }
+
+  const raw = await db.query('SELECT id FROM students WHERE id = ?', [numericId]);
+  const first = Array.isArray(raw) ? raw[0] : raw;
+  const isUpdateResult = !!(first && typeof first === 'object' && !Array.isArray(first) &&
+    ('affectedRows' in first || 'insertId' in first || 'changedRows' in first));
+
+  if (isUpdateResult) {
+    if (first.affectedRows === 0) {
+      throw new AppError(404, 'STUDENT_NOT_FOUND', 'Student not found');
+    }
+    return { id: numericId, is_active: 0 };
+  }
+
+  const existingRows = Array.isArray(first) ? first : (first ? [first] : []);
+  if (!existingRows.length) {
+    throw new AppError(404, 'STUDENT_NOT_FOUND', 'Student not found');
+  }
+
+  await db.query('UPDATE students SET is_active = 0, updated_by = ? WHERE id = ?', [adminId || null, numericId]);
+  return { id: numericId, is_active: 0 };
 }
 
 async function getStudentById(id) {
@@ -52,13 +82,31 @@ async function updateStudent(id, data, adminId) {
     if (first.affectedRows === 0) {
       throw new AppError(404, 'STUDENT_NOT_FOUND', 'Student not found');
     }
+    const nameMissing = data.name !== undefined && !String(data.name).trim();
+    const branchMissing = data.branch !== undefined && !String(data.branch).trim();
+    const semesterMissing = data.semester !== undefined && (data.semester === null || data.semester === '');
+    if (nameMissing || branchMissing || semesterMissing) {
+      throw new AppError(400, 'MISSING_FIELDS', 'Name, branch and semester are required');
+    }
     const phone = data.phone !== undefined ? (String(data.phone).trim() || null) : undefined;
     const email = data.email !== undefined ? (String(data.email).trim() || null) : undefined;
+    let semester;
+    if (data.semester !== undefined) {
+      semester = Number(data.semester);
+      if (Number.isNaN(semester)) {
+        throw new AppError(400, 'INVALID_SEMESTER', 'semester must be an integer between 1 and 8');
+      }
+    } else {
+      semester = undefined;
+    }
+    if (semester !== null && semester !== undefined && (!Number.isInteger(semester) || semester < 1 || semester > 8)) {
+      throw new AppError(400, 'INVALID_SEMESTER', 'semester must be an integer between 1 and 8');
+    }
     return {
       id: numericId,
       name: data.name !== undefined ? String(data.name).trim() : undefined,
       branch: data.branch !== undefined ? String(data.branch).trim() : undefined,
-      semester: data.semester !== undefined ? (data.semester === '' || data.semester === null ? null : Number(data.semester)) : undefined,
+      semester,
       email,
       phone,
     };
@@ -69,6 +117,13 @@ async function updateStudent(id, data, adminId) {
     throw new AppError(404, 'STUDENT_NOT_FOUND', 'Student not found');
   }
   const existing = existingRows[0];
+
+  const nameMissing = data.name !== undefined && !String(data.name).trim();
+  const branchMissing = data.branch !== undefined && !String(data.branch).trim();
+  const semesterMissing = data.semester !== undefined && (data.semester === null || data.semester === '');
+  if (nameMissing || branchMissing || semesterMissing) {
+    throw new AppError(400, 'MISSING_FIELDS', 'Name, branch and semester are required');
+  }
 
   const sets = [];
   const params = [];
@@ -184,4 +239,4 @@ async function addStudent(data, adminId) {
   };
 }
 
-module.exports = { listStudents, getStudentById, addStudent, updateStudent, DEFAULT_STUDENT_PASSWORD };
+module.exports = { listStudents, getStudentById, addStudent, updateStudent, deactivateStudent, DEFAULT_STUDENT_PASSWORD };
