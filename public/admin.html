@@ -25,9 +25,22 @@
       </form>
       <p id="add-student-msg"></p>
     </section>
+    <section class="panel" id="edit-student-panel">
+      <h2>Edit student</h2>
+      <form id="edit-student-form">
+        <input name="id" placeholder="Student id" required>
+        <input name="name" placeholder="Name">
+        <input name="branch" placeholder="Branch">
+        <input name="semester" type="number" min="1" max="8" placeholder="Semester">
+        <input name="email" type="email" placeholder="Email">
+        <input name="phone" placeholder="Phone">
+        <button type="submit">Save changes</button>
+      </form>
+      <p id="edit-student-msg"></p>
+    </section>
     <section class="panel" id="students-panel">
       <h2>Students</h2>
-      <table id="students-table"><thead><tr><th>Roll no</th><th>Name</th><th>Branch</th><th>Sem</th><th>Email</th><th>Phone</th></tr></thead><tbody></tbody></table>
+      <table id="students-table"><thead><tr><th>ID</th><th>Roll no</th><th>Name</th><th>Branch</th><th>Sem</th><th>Email</th><th>Phone</th><th></th></tr></thead><tbody></tbody></table>
     </section>
     <section class="panel" id="reports-panel">
       <h2>Reports</h2>
@@ -38,36 +51,70 @@
   <script src="/js/dashboard.js"></script>
   <script>
     (async function () {
-      const form = document.getElementById('add-student-form');
-      const msg = document.getElementById('add-student-msg');
+      const addForm = document.getElementById('add-student-form');
+      const addMsg = document.getElementById('add-student-msg');
+      const editForm = document.getElementById('edit-student-form');
+      const editMsg = document.getElementById('edit-student-msg');
       const tbody = document.querySelector('#students-table tbody');
+      let students = [];
 
       async function loadStudents() {
         try {
           const res = await api('/students');
-          tbody.innerHTML = (res.students || []).map(s =>
-            `<tr><td>${s.roll_no}</td><td>${s.name}</td><td>${s.branch}</td><td>${s.semester}</td><td>${s.email || ''}</td><td>${s.phone || ''}</td></tr>`
+          students = res.students || [];
+          tbody.innerHTML = students.map(s =>
+            `<tr><td>${s.id}</td><td>${s.roll_no}</td><td>${s.name}</td><td>${s.branch}</td><td>${s.semester}</td><td>${s.email || ''}</td><td>${s.phone || ''}</td><td><button data-id="${s.id}">Edit</button></td></tr>`
           ).join('');
-        } catch (e) { msg.textContent = e.message; }
+          tbody.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', () => {
+              const s = students.find(x => String(x.id) === btn.dataset.id);
+              if (!s) return;
+              editForm.id.value = s.id;
+              editForm.name.value = s.name || '';
+              editForm.branch.value = s.branch || '';
+              editForm.semester.value = s.semester || '';
+              editForm.email.value = s.email || '';
+              editForm.phone.value = s.phone || '';
+              editMsg.textContent = 'Loaded student ' + s.roll_no;
+            });
+          });
+        } catch (e) { addMsg.textContent = e.message; }
       }
 
-      form.addEventListener('submit', async (e) => {
+      addForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        msg.textContent = '';
-        const fd = new FormData(form);
+        addMsg.textContent = '';
+        const fd = new FormData(addForm);
         const data = Object.fromEntries(fd.entries());
         data.semester = Number(data.semester);
         try {
           await api('/students', { method: 'POST', body: JSON.stringify(data) });
-          msg.textContent = 'Student added';
-          form.reset();
+          addMsg.textContent = 'Student added';
+          addForm.reset();
           await loadStudents();
         } catch (e) {
-          msg.textContent = e.message;
+          addMsg.textContent = e.message;
         }
       });
 
-      // load after dashboard guard; small delay to ensure token present
+      editForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        editMsg.textContent = '';
+        const fd = new FormData(editForm);
+        const data = Object.fromEntries(fd.entries());
+        const id = data.id;
+        delete data.id;
+        if (data.semester) data.semester = Number(data.semester);
+        try {
+          await api('/students/' + id, { method: 'PUT', body: JSON.stringify(data) });
+          editMsg.textContent = 'Student updated';
+          editForm.reset();
+          await loadStudents();
+        } catch (e) {
+          editMsg.textContent = e.message;
+        }
+      });
+
       setTimeout(loadStudents, 0);
     })();
   </script>
