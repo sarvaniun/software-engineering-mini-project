@@ -81,6 +81,21 @@ describe('PATCH /api/students/:id/deactivate', () => {
     expect(res.body.status).toBe('success');
   });
 
+  it('returns 400 for a non-numeric id', async () => {
+    const res = await request(app).patch('/api/students/abc/deactivate')
+      .set('Authorization', `Bearer ${adminToken}`);
+    expect(res.statusCode).toBe(400);
+    expect(res.body.errorCode).toBe('INVALID_ID');
+  });
+
+  it('returns 404 for a non-existent id', async () => {
+    db.query.mockResolvedValueOnce([[]]);
+    const res = await request(app).patch('/api/students/999/deactivate')
+      .set('Authorization', `Bearer ${adminToken}`);
+    expect(res.statusCode).toBe(404);
+    expect(res.body.errorCode).toBe('STUDENT_NOT_FOUND');
+  });
+
   it('returns 403 for a non-admin', async () => {
     const studentToken = jwt.sign({ id: 7, role: 'student', name: 'S' }, 'test-secret');
     const res = await request(app).patch('/api/students/1/deactivate')

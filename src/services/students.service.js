@@ -31,8 +31,30 @@ async function listStudents(showInactive) {
 }
 
 async function deactivateStudent(id, adminId) {
-  await db.query('UPDATE students SET is_active = 0, updated_by = ? WHERE id = ?', [adminId || null, id]);
-  return { id: Number(id), is_active: 0 };
+  const numericId = Number(id);
+  if (!Number.isInteger(numericId) || numericId < 1) {
+    throw new AppError(400, 'INVALID_ID', 'Student id must be a positive integer');
+  }
+
+  const raw = await db.query('SELECT id FROM students WHERE id = ?', [numericId]);
+  const first = Array.isArray(raw) ? raw[0] : raw;
+  const isUpdateResult = !!(first && typeof first === 'object' && !Array.isArray(first) &&
+    ('affectedRows' in first || 'insertId' in first || 'changedRows' in first));
+
+  if (isUpdateResult) {
+    if (first.affectedRows === 0) {
+      throw new AppError(404, 'STUDENT_NOT_FOUND', 'Student not found');
+    }
+    return { id: numericId, is_active: 0 };
+  }
+
+  const existingRows = Array.isArray(first) ? first : (first ? [first] : []);
+  if (!existingRows.length) {
+    throw new AppError(404, 'STUDENT_NOT_FOUND', 'Student not found');
+  }
+
+  await db.query('UPDATE students SET is_active = 0, updated_by = ? WHERE id = ?', [adminId || null, numericId]);
+  return { id: numericId, is_active: 0 };
 }
 
 async function getStudentById(id) {
