@@ -106,6 +106,18 @@
         }
       });
 
+      window.__editStudent = (id) => {
+        const s = students.find(x => String(x.id) === String(id));
+        if (!s) return;
+        editForm.id.value = s.id;
+        editForm.name.value = s.name || '';
+        editForm.branch.value = s.branch || '';
+        editForm.semester.value = s.semester || '';
+        editForm.email.value = s.email || '';
+        editForm.phone.value = s.phone || '';
+        editMsg.textContent = 'Loaded student ' + s.roll_no;
+      };
+
       window.__deactivateStudent = async (id) => {
         try {
           await api('/students/' + id + '/deactivate', { method: 'PATCH' });
