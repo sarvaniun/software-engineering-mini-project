@@ -4,6 +4,7 @@ const path = require('path');
 const { verifyToken } = require('./middleware/auth');
 const authRoutes = require('./routes/auth.routes');
 const studentRoutes = require('./routes/students.routes');
+const meRoutes = require('./routes/me.routes');
 const academicRoutes = require('./routes/academics.routes');
 const reportRoutes = require('./routes/reports.routes');
 
@@ -28,6 +29,7 @@ app.use('/api', (req, res, next) => {
 // Module routes (SAD 3.3: Auth, Student Records, Attendance & Marks, Reports & Backup)
 app.use('/api', authRoutes);
 app.use('/api/students', studentRoutes);
+app.use('/api/me', meRoutes);
 app.use('/api', academicRoutes);
 app.use('/api/reports', reportRoutes);
 

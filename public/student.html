@@ -14,18 +14,51 @@
   <main>
     <section class="panel" id="profile-panel">
       <h2>My Profile</h2>
-      <p class="placeholder">Profile, attendance and marks: #13 (Vinaayak)</p>
+      <div id="profile"></div>
     </section>
     <section class="panel" id="attendance-panel">
       <h2>My Attendance</h2>
-      <p class="placeholder">Attendance %: #13 (Vinaayak)</p>
+      <table id="attendance-table"><thead><tr><th>Subject</th><th>Total</th><th>Present</th><th>%</th></tr></thead><tbody></tbody></table>
     </section>
     <section class="panel" id="marks-panel">
       <h2>My Marks</h2>
-      <p class="placeholder">Marks, GPA and mark sheet: #13, #25, #26</p>
+      <table id="marks-table"><thead><tr><th>Subject</th><th>Marks</th><th>Max</th></tr></thead><tbody></tbody></table>
     </section>
   </main>
   <script src="/js/api.js"></script>
   <script src="/js/dashboard.js"></script>
+  <script>
+    (async function () {
+      try {
+        const pRes = await api('/me/profile');
+        const p = pRes.profile || pRes.student || pRes.data || {};
+        document.getElementById('profile').innerHTML =
+          '<p><strong>Roll no:</strong> ' + (p.roll_no || '') + '</p>' +
+          '<p><strong>Name:</strong> ' + (p.name || '') + '</p>' +
+          '<p><strong>Branch:</strong> ' + (p.branch || '') + '</p>' +
+          '<p><strong>Semester:</strong> ' + (p.semester || '') + '</p>' +
+          '<p><strong>Email:</strong> ' + (p.email || '') + '</p>' +
+          '<p><strong>Phone:</strong> ' + (p.phone || '') + '</p>';
+      } catch (e) { document.getElementById('profile').textContent = e.message; }
+
+      try {
+        const aRes = await api('/me/attendance');
+        const rows = aRes.attendance || aRes.data || [];
+        const tbody = document.querySelector('#attendance-table tbody');
+        tbody.innerHTML = rows.map(r =>
+          '<tr><td>' + (r.code || r.name) + '</td><td>' + r.total + '</td><td>' + r.present + '</td><td>' + r.percentage + '</td></tr>'
+        ).join('');
+      } catch (e) { document.querySelector('#attendance-table tbody').innerHTML = '<tr><td colspan="4">' + e.message + '</td></tr>'; }
+
+      try {
+        const mRes = await api('/me/marks');
+        const rows = mRes.marks || mRes.data || [];
+        const tbody = document.querySelector('#marks-table tbody');
+        tbody.innerHTML = rows.map(r =>
+          '<tr><td>' + (r.code || r.name) + '</td><td>' + (r.marks === null ? '' : r.marks) + '</td><td>' + r.max_marks + '</td></tr>'
+        ).join('');
+      } catch (e) { document.querySelector('#marks-table tbody').innerHTML = '<tr><td colspan="3">' + e.message + '</td></tr>'; }
+    })();
+  </script>
 </body>
 </html>
