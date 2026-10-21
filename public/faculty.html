@@ -1,31 +1,60 @@
+
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Faculty · Student Record System</title>
+  <title>Faculty - Student Record System</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body data-role="faculty">
   <header class="topbar">
     <h1>Faculty Dashboard</h1>
-    <div><span class="who" id="user-name"></span><button class="btn-secondary" id="logout">Logout</button></div>
+    <div>
+      <span class="who" id="user-name"></span>
+      <button class="btn-secondary" id="logout">Logout</button>
+    </div>
   </header>
+
   <main>
     <section class="panel" id="attendance-panel">
       <h2>Mark Attendance</h2>
-      <p class="placeholder">Attendance for your classes: #14 (Yaseen)</p>
+
+      <p id="attendance-status" class="placeholder"
+         role="status" aria-live="polite">
+        Loading your assigned subjects...
+      </p>
+
+      <form id="attendance-form" hidden>
+        <label for="attendance-subject">Subject</label>
+        <select id="attendance-subject" required>
+          <option value="">Select a subject</option>
+        </select>
+
+        <label for="attendance-date">Class Date</label>
+        <input id="attendance-date" type="date" required>
+
+        <div id="attendance-students"></div>
+
+        <button id="save-attendance" class="btn-primary" type="submit">
+          Save Attendance
+        </button>
+      </form>
     </section>
+
     <section class="panel" id="marks-panel">
       <h2>Enter Marks</h2>
-      <p class="placeholder">Marks for your subjects: #15 (Yaseen)</p>
+      <p class="placeholder">Enter and update Student marks.</mark></p>
     </section>
+
     <section class="panel" id="search-panel">
       <h2>Search Students</h2>
-      <p class="placeholder">Search: #19 (Vinaayak)</p>
+      <p class="placeholder">Search Student records.</p>
     </section>
   </main>
+
   <script src="/js/api.js"></script>
   <script src="/js/dashboard.js"></script>
+  <script src="/js/attendance.js"></script>
 </body>
 </html>

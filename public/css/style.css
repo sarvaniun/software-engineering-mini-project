@@ -29,3 +29,61 @@ main { max-width: 1000px; margin: 0 auto; padding: 16px; }
 .panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
 .panel h2 { font-size: 1.05rem; margin: 0 0 8px; }
 .placeholder { color: var(--muted); font-size: .9rem; margin: 0; }
+
+
+/* Attendance form */
+select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 1rem;
+  background: white;
+  color: var(--text);
+}
+
+.attendance-roster {
+  margin-top: 16px;
+}
+
+.attendance-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.attendance-student {
+  display: grid;
+  gap: 4px;
+}
+
+.attendance-student small {
+  color: var(--muted);
+}
+
+.attendance-choices {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.attendance-choice {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  cursor: pointer;
+}
+
+.attendance-choice input {
+  width: auto;
+  margin: 0;
+}
+
+#attendance-form[hidden] {
+  display: none;
+}
