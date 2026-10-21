@@ -4,24 +4,28 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Faculty - Student Record System</title>
+  <title>Faculty Dashboard - Student Record System</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
+
 <body data-role="faculty">
   <header class="topbar">
     <h1>Faculty Dashboard</h1>
     <div>
       <span class="who" id="user-name"></span>
-      <button class="btn-secondary" id="logout">Logout</button>
+      <button class="btn-secondary" id="logout" type="button">Logout</button>
     </div>
   </header>
 
   <main>
+    <!-- Issue #14: Attendance -->
     <section class="panel" id="attendance-panel">
       <h2>Mark Attendance</h2>
 
-      <p id="attendance-status" class="placeholder"
-         role="status" aria-live="polite">
+      <p id="attendance-status"
+         class="placeholder"
+         role="status"
+         aria-live="polite">
         Loading your assigned subjects...
       </p>
 
@@ -36,25 +40,58 @@
 
         <div id="attendance-students"></div>
 
-        <button id="save-attendance" class="btn-primary" type="submit">
+        <button id="save-attendance"
+                class="btn-primary"
+                type="submit">
           Save Attendance
         </button>
       </form>
     </section>
 
+    <!-- Issue #15: Marks entry and update -->
     <section class="panel" id="marks-panel">
       <h2>Enter Marks</h2>
-      <p class="placeholder">Enter and update Student marks.</mark></p>
+
+      <p id="marks-status"
+         class="placeholder"
+         role="status"
+         aria-live="polite">
+        Loading your assigned subjects...
+      </p>
+
+      <form id="marks-form" hidden>
+        <label for="marks-subject">Subject</label>
+        <select id="marks-subject" required>
+          <option value="">Select a subject</option>
+        </select>
+
+        <p id="marks-max-info"
+           class="placeholder"
+           aria-live="polite"></p>
+
+        <div id="marks-students"></div>
+
+        <button id="save-marks"
+                class="btn-primary"
+                type="submit">
+          Save Marks
+        </button>
+      </form>
     </section>
 
+    <!-- Student search is handled separately -->
     <section class="panel" id="search-panel">
       <h2>Search Students</h2>
-      <p class="placeholder">Search Student records.</p>
+      <p class="placeholder">Search student records.</p>
     </section>
   </main>
 
+  <!-- Shared authentication and API helpers -->
   <script src="/js/api.js"></script>
   <script src="/js/dashboard.js"></script>
+
+  <!-- Feature-specific scripts -->
   <script src="/js/attendance.js"></script>
+  <script src="/js/marks.js"></script>
 </body>
 </html>
