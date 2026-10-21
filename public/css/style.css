@@ -87,3 +87,43 @@ select {
 #attendance-form[hidden] {
   display: none;
 }
+
+
+/* Marks entry form */
+.marks-roster {
+  margin-top: 16px;
+}
+
+.marks-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.marks-student {
+  display: grid;
+  gap: 4px;
+}
+
+.marks-student small {
+  color: var(--muted);
+}
+
+.marks-field {
+  display: block;
+  width: 180px;
+  margin: 0;
+}
+
+.marks-field input {
+  display: block;
+  margin-top: 6px;
+}
+
+#marks-form[hidden] {
+  display: none;
+}
