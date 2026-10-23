@@ -1,8 +1,12 @@
 # Student Record System
 
+![CI](https://github.com/sarvaniun/software-engineering-mini-project/actions/workflows/ci.yml/badge.svg)
+
+
 Team 7 · Software Engineering Mini-Project · PES University
 
 A web application for one college to manage student records, attendance and marks. Students can view their own profile, attendance, marks and mark sheet. Faculty can mark attendance and enter marks. Admins can manage student records and view reports.
+
 
 ## Team
 
