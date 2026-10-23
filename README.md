@@ -1,3 +1,4 @@
+
 # Student Record System
 
 ![CI](https://github.com/sarvaniun/software-engineering-mini-project/actions/workflows/ci.yml/badge.svg)
@@ -61,10 +62,16 @@ npm install
 
 Copy the example environment file to `.env`.
 
-On Windows PowerShell:
+**Windows PowerShell:**
 
 ```powershell
 Copy-Item .env.example .env
+```
+
+**Linux/macOS:**
+
+```bash
+cp .env.example .env
 ```
 
 Open `.env` and configure it with your local MySQL credentials and a private JWT secret.
@@ -88,10 +95,22 @@ Replace the placeholder values with your own local configuration. Do not share y
 
 Make sure your local MySQL server is running.
 
-Open MySQL Command Line Client and connect to your local MySQL server. Execute the schema file using the `source` command, replacing the example path with the actual location of the cloned repository.
+**Windows (MySQL Command Line Client):**
+
+Connect to your local MySQL server and execute:
 
 ```sql
 source C:/path/to/software-engineering-mini-project/db/schema.sql
+```
+
+Replace the example path with the actual location of the cloned repository.
+
+**Linux/macOS:**
+
+Run the following command from the project root, replacing `<user>` with your local MySQL username:
+
+```bash
+mysql -u <user> -p < db/schema.sql
 ```
 
 The schema creates the `student_records` database and its required tables.
