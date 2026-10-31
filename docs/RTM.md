@@ -7,8 +7,8 @@ Status: Pass / Fail / Not implemented (see docs/DEVIATIONS.md).
 | --- | --- | --- | --- | --- | --- | --- |
 | SRSF-001 | Role-based login | Auth | #5, #6 | #39, #41 | TC1 | |
 | SRSF-002 | Password masking | Auth | #7 | #41 | TC2 | |
-| SRSF-003 | Lock account after failed logins | Auth | #20 | | TC3 | |
-| SRSF-004 | Auto logout after inactivity | Auth | #21 | | TC4 | |
+| SRSF-003 | Lock account after failed logins | Auth | #20 | #54 | TC3 | |
+| SRSF-004 | Auto logout after inactivity | Auth | #21 | #55 | TC4 | |
 | SRSF-010 | Add student record | Records | #10 | #43 | TC5 | |
 | SRSF-011 | Edit student record | Records | #11 | #44 | TC6 | |
 | SRSF-012 | Deactivate student record | Records | #12 | #45 | TC7 | |
@@ -29,4 +29,4 @@ Status: Pass / Fail / Not implemented (see docs/DEVIATIONS.md).
 | SRSSR-002 | Password hashing | Auth | #8 | #38 | SEC2 | |
 | SRSSR-003 | Server-side role check | Security/Auth | #9 | #40 | SEC3 | |
 | SRSSR-004 | Track who edited a record | Security | #24 | | SEC4 | |
-| SRSSR-005 | Session expires after inactivity | Auth | #22 | | SEC5 | |
+| SRSSR-005 | Session expires after inactivity | Auth | #22 | #55 | SEC5 | |
