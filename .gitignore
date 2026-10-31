@@ -3,3 +3,7 @@ node_modules/
 backups/
 coverage/
 *.log
+
+# Local HTTPS certificates
+certs/*.key
+certs/*.crt
