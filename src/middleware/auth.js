@@ -13,7 +13,11 @@ function verifyToken(req, res, next) {
     req.user = jwt.verify(token, process.env.JWT_SECRET);
     next();
   } catch (err) {
-    next(new AppError(401, 'INVALID_TOKEN', 'Session expired or invalid, please log in again'));
+    // SRSSR-005: tokens expire after JWT_EXPIRES_IN (15 min); jsonwebtoken reports that as TokenExpiredError
+    if (err.name === 'TokenExpiredError') {
+      return next(new AppError(401, 'TOKEN_EXPIRED', 'Your session has expired, please log in again'));
+    }
+    next(new AppError(401, 'INVALID_TOKEN', 'Invalid session, please log in again'));
   }
 }
 
