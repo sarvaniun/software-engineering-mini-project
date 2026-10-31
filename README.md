@@ -6,6 +6,34 @@ Team 7 · Software Engineering Mini-Project · PES University
 
 A web application for one college to manage student records, attendance and marks. Students can view their own profile, attendance, marks and mark sheet. Faculty can mark attendance and enter marks. Admins can manage student records and view reports.
 
+## Features
+
+### Authentication and Security
+- Role-based login for Admin, Faculty and Student.
+- Password hashing using bcrypt.
+- Account lockout and session management.
+- Server-side role-based authorization.
+
+### Student Management
+- Add, edit, deactivate and search student records.
+- View student profiles.
+
+### Attendance and Academics
+- Faculty attendance entry.
+- Attendance percentage calculation.
+- Marks entry and academic records.
+- GPA calculation and mark sheet generation.
+
+### Reports and Backup
+- Admin branch/class attendance and marks reports.
+- Daily automated database backup.
+- Manual backup and database restoration.
+
+### Development and Quality
+- Automated tests using Jest.
+- GitHub Actions CI pipeline.
+- Local HTTPS development support.
+
 ## Team
 
 | Name | SRN | Module |
@@ -20,7 +48,11 @@ A web application for one college to manage student records, attendance and mark
 - Software Requirements Specification (SRS) v1.0
 - Software Architecture & Design Specification (SAD) v1.0
 - Software Test Plan (STP) v1.0
-- Sprint 1 demo video: demo/sprint1_demo_video.mp4
+- [Deviations Log](docs/DEVIATIONS.md)
+- [Test Summary Report](docs/test-summary-report.md)
+- [Test Execution Log](docs/test-execution-log.md)
+- Sprint 1 demo video: [demo/sprint1_demo_video.mp4](demo/sprint1_demo_video.mp4)
+- Sprint 2 demo video: To be added after the final recording.
 
 ## Tech Stack
 
@@ -30,6 +62,24 @@ A web application for one college to manage student records, attendance and mark
 - **Frontend:** HTML, CSS and JavaScript
 - **Testing:** Jest
 - **CI:** GitHub Actions
+
+## Application Screenshots
+
+### Login Page
+
+![Login Page](docs/screenshots/login.png)
+
+### Admin Dashboard
+
+![Admin Dashboard](docs/screenshots/admin-dashboard.png)
+
+### Faculty Dashboard
+
+![Faculty Dashboard](docs/screenshots/faculty-dashboard.png)
+
+### Student Dashboard
+
+![Student Dashboard](docs/screenshots/student-dashboard.png)
 
 ## Prerequisites
 
@@ -294,6 +344,7 @@ mysql -u <user> -p student_records_restore_test < backups/backup-YYYY-MM-DD.sql
 - Server-side authorization must protect student, faculty and admin data.
 - Use sample data for local development and testing.
 - The sample credentials in this README must not be used in production.
+- Local HTTPS uses a self-signed development certificate; a trusted certificate is required for production deployment.
 
 ## Scope
 
