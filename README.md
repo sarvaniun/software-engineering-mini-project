@@ -213,3 +213,50 @@ These are publicly visible development credentials. Never use them in production
 The system covers student record management, role-based access, attendance, marks, GPA calculation, mark sheet generation, basic reports and database backup.
 
 Fee payment, hostel allocation, library management and multi-institution support are outside the scope of this project.
+## Local HTTPS Setup (Issue #23)
+
+The Student Record System supports both HTTP and HTTPS for local development.
+
+### Requirements
+- Node.js and npm
+- OpenSSL
+
+### Generate a local self-signed certificate
+
+Run these commands from the project root:
+
+```powershell
+New-Item -ItemType Directory -Force certs
+
+openssl req -x509 -newkey rsa:2048 -nodes -keyout certs/server.key -out certs/server.crt -days 365 -subj "/CN=localhost" -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
+```
+
+### Start the application
+
+```powershell
+npm start
+```
+
+The application starts on:
+- HTTP: http://localhost:3000
+- HTTPS: https://localhost:3443
+
+### Verify HTTPS
+
+```powershell
+curl.exe -k https://localhost:3443/api/health
+```
+
+Expected response:
+
+```json
+{"status":"ok"}
+```
+
+The `-k` option is used only for local testing with a self-signed certificate.
+
+### Certificate security
+
+The certificate and private key are generated locally and must not be committed to GitHub. The `certs/*.key` and `certs/*.crt` files are excluded through `.gitignore`.
+
+**Note:** Browsers may show a certificate authority warning because the local certificate is self-signed. This is expected for local development.
