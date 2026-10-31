@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -6,83 +7,208 @@
   <title>Admin · Student Record System</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
+
 <body data-role="admin">
+
   <header class="topbar">
     <h1>Admin Dashboard</h1>
-    <div><span class="who" id="user-name"></span><button class="btn-secondary" id="logout">Logout</button></div>
+    <div>
+      <span class="who" id="user-name"></span>
+      <button class="btn-secondary" id="logout">Logout</button>
+    </div>
   </header>
+
   <main>
+
+    <!-- Add Student -->
     <section class="panel" id="add-student-panel">
       <h2>Add student</h2>
+
       <form id="add-student-form">
         <input name="roll_no" placeholder="Roll no" required>
         <input name="name" placeholder="Name" required>
         <input name="branch" placeholder="Branch" required>
-        <input name="semester" type="number" min="1" max="8" placeholder="Semester" required>
+        <input name="semester" type="number" min="1" max="8"
+          placeholder="Semester" required>
         <input name="email" type="email" placeholder="Email">
         <input name="phone" placeholder="Phone">
         <button type="submit">Add student</button>
       </form>
+
       <p id="add-student-msg"></p>
     </section>
+
+    <!-- Edit Student -->
     <section class="panel" id="edit-student-panel">
       <h2>Edit student</h2>
+
       <form id="edit-student-form">
         <input name="id" placeholder="Student id" required>
         <input name="name" placeholder="Name">
         <input name="branch" placeholder="Branch">
-        <input name="semester" type="number" min="1" max="8" placeholder="Semester">
+        <input name="semester" type="number" min="1" max="8"
+          placeholder="Semester">
         <input name="email" type="email" placeholder="Email">
         <input name="phone" placeholder="Phone">
         <button type="submit">Save changes</button>
       </form>
+
       <p id="edit-student-msg"></p>
     </section>
+
+    <!-- Students List -->
     <section class="panel" id="students-panel">
       <h2>Students</h2>
-      <label><input type="checkbox" id="show-inactive"> Show inactive</label>
-      <table id="students-table"><thead><tr><th>ID</th><th>Roll no</th><th>Name</th><th>Branch</th><th>Sem</th><th>Email</th><th>Phone</th><th>Status</th><th></th></tr></thead><tbody></tbody></table>
+
+      <label>
+        <input type="checkbox" id="show-inactive">
+        Show inactive
+      </label>
+
+      <table id="students-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Roll no</th>
+            <th>Name</th>
+            <th>Branch</th>
+            <th>Sem</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </section>
+
+    <!-- Branch / Class Report -->
     <section class="panel" id="reports-panel">
-      <h2>Reports</h2>
-      <p class="placeholder">Branch/class report: #27 (Eshwar)</p>
+      <h2>Branch / Class Report</h2>
+
+      <form id="branch-report-form">
+
+        <label for="report-branch">Select Branch</label>
+        <select id="report-branch" required>
+          <option value="CSE">CSE</option>
+          <option value="ECE">ECE</option>
+        </select>
+
+        <label for="report-semester">Select Semester</label>
+        <select id="report-semester" required>
+          <option value="1">Semester 1</option>
+          <option value="2">Semester 2</option>
+          <option value="3">Semester 3</option>
+          <option value="4">Semester 4</option>
+          <option value="5" selected>Semester 5</option>
+          <option value="6">Semester 6</option>
+          <option value="7">Semester 7</option>
+          <option value="8">Semester 8</option>
+        </select>
+
+        <button type="submit">Generate Report</button>
+      </form>
+
+      <p id="branch-report-message" role="status"></p>
+
+      <div style="overflow-x: auto;">
+        <table id="branch-report-table">
+          <thead>
+            <tr>
+              <th>Roll Number</th>
+              <th>Student Name</th>
+              <th>Attendance (%)</th>
+              <th>Average Marks</th>
+            </tr>
+          </thead>
+
+          <tbody id="branch-report-body"></tbody>
+
+          <tfoot id="branch-report-footer"></tfoot>
+        </table>
+      </div>
     </section>
+
   </main>
+
   <script src="/js/api.js"></script>
   <script src="/js/dashboard.js"></script>
+
+  <!-- Existing Admin Dashboard Functionality -->
   <script>
     (async function () {
       const addForm = document.getElementById('add-student-form');
       const addMsg = document.getElementById('add-student-msg');
+
       const editForm = document.getElementById('edit-student-form');
       const editMsg = document.getElementById('edit-student-msg');
+
       const tbody = document.querySelector('#students-table tbody');
+
       let students = [];
 
       async function loadStudents() {
         try {
           const show = document.getElementById('show-inactive').checked;
-          const res = await api('/students' + (show ? '?inactive=1' : ''));
+
+          const res = await api(
+            '/students' + (show ? '?inactive=1' : '')
+          );
+
           students = res.students || [];
+
           tbody.innerHTML = students.map(s =>
-            `<tr><td>${s.id}</td><td>${s.roll_no}</td><td>${s.name}</td><td>${s.branch}</td><td>${s.semester}</td><td>${s.email || ''}</td><td>${s.phone || ''}</td><td>${s.is_active ? 'Active' : 'Inactive'}</td><td><button type="button" onclick="window.__editStudent && window.__editStudent(${s.id})">Edit</button>${s.is_active ? ' <button type="button" onclick="window.__deactivateStudent && window.__deactivateStudent(' + s.id + ')">Deactivate</button>' : ''}</td></tr>`
+            `<tr>
+              <td>${s.id}</td>
+              <td>${s.roll_no}</td>
+              <td>${s.name}</td>
+              <td>${s.branch}</td>
+              <td>${s.semester}</td>
+              <td>${s.email || ''}</td>
+              <td>${s.phone || ''}</td>
+              <td>${s.is_active ? 'Active' : 'Inactive'}</td>
+              <td>
+                <button type="button"
+                  onclick="window.__editStudent && window.__editStudent(${s.id})">
+                  Edit
+                </button>
+                ${s.is_active
+                  ? ' <button type="button" onclick="window.__deactivateStudent && window.__deactivateStudent(' + s.id + ')">Deactivate</button>'
+                  : ''}
+              </td>
+            </tr>`
           ).join('');
-        } catch (e) { addMsg.textContent = e.message; }
+
+        } catch (e) {
+          addMsg.textContent = e.message;
+        }
       }
 
-      document.getElementById('show-inactive').addEventListener('change', loadStudents);
+      document.getElementById('show-inactive')
+        .addEventListener('change', loadStudents);
 
       addForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+
         addMsg.textContent = '';
+
         const fd = new FormData(addForm);
         const data = Object.fromEntries(fd.entries());
+
         data.semester = Number(data.semester);
+
         try {
-          await api('/students', { method: 'POST', body: JSON.stringify(data) });
-          addMsg.textContent = 'Student added';
+          await api('/students', {
+            method: 'POST',
+            body: JSON.stringify(data)
+          });
+
+          addMsg.textContent = 'Student added successfully';
           addForm.reset();
+
           await loadStudents();
+
         } catch (e) {
           addMsg.textContent = e.message;
         }
@@ -90,44 +216,176 @@
 
       editForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+
         editMsg.textContent = '';
+
         const fd = new FormData(editForm);
         const data = Object.fromEntries(fd.entries());
+
         const id = data.id;
         delete data.id;
-        if (data.semester) data.semester = Number(data.semester);
+
+        if (data.semester) {
+          data.semester = Number(data.semester);
+        }
+
         try {
-          await api('/students/' + id, { method: 'PUT', body: JSON.stringify(data) });
-          editMsg.textContent = 'Student updated';
+          await api('/students/' + id, {
+            method: 'PUT',
+            body: JSON.stringify(data)
+          });
+
+          editMsg.textContent = 'Student updated successfully';
           editForm.reset();
+
           await loadStudents();
+
         } catch (e) {
           editMsg.textContent = e.message;
         }
       });
 
       window.__editStudent = (id) => {
-        const s = students.find(x => String(x.id) === String(id));
+        const s = students.find(
+          x => String(x.id) === String(id)
+        );
+
         if (!s) return;
-        editForm.id.value = s.id;
-        editForm.name.value = s.name || '';
-        editForm.branch.value = s.branch || '';
-        editForm.semester.value = s.semester || '';
-        editForm.email.value = s.email || '';
-        editForm.phone.value = s.phone || '';
+
+        editForm.elements.id.value = s.id;
+        editForm.elements.name.value = s.name || '';
+        editForm.elements.branch.value = s.branch || '';
+        editForm.elements.semester.value = s.semester || '';
+        editForm.elements.email.value = s.email || '';
+        editForm.elements.phone.value = s.phone || '';
+
         editMsg.textContent = 'Loaded student ' + s.roll_no;
       };
 
       window.__deactivateStudent = async (id) => {
         try {
-          await api('/students/' + id + '/deactivate', { method: 'PATCH' });
+          await api('/students/' + id + '/deactivate', {
+            method: 'PATCH'
+          });
+
           addMsg.textContent = 'Student deactivated';
+
           await loadStudents();
-        } catch (e) { addMsg.textContent = e.message; }
+
+        } catch (e) {
+          addMsg.textContent = e.message;
+        }
       };
 
       setTimeout(loadStudents, 0);
     })();
   </script>
+
+  <!-- Branch / Class Report Functionality -->
+  <script>
+    (function () {
+      const form = document.getElementById('branch-report-form');
+      const message = document.getElementById('branch-report-message');
+
+      const tbody = document.getElementById('branch-report-body');
+      const tfoot = document.getElementById('branch-report-footer');
+
+      function addCell(row, value, isHeader = false) {
+        const cell = document.createElement(
+          isHeader ? 'th' : 'td'
+        );
+
+        cell.textContent = value;
+        row.appendChild(cell);
+      }
+
+      function displayReport(report) {
+        tbody.replaceChildren();
+        tfoot.replaceChildren();
+
+        if (report.students.length === 0) {
+          message.textContent =
+            'No active students found for this branch and semester.';
+          return;
+        }
+
+        report.students.forEach((student) => {
+          const row = document.createElement('tr');
+
+          addCell(row, student.roll_no);
+          addCell(row, student.name);
+
+          addCell(
+            row,
+            `${Number(student.attendance_percentage).toFixed(2)}%`
+          );
+
+          addCell(
+            row,
+            Number(student.average_marks).toFixed(2)
+          );
+
+          tbody.appendChild(row);
+        });
+
+        const averageRow = document.createElement('tr');
+
+        addCell(averageRow, 'Class Average', true);
+
+        addCell(
+          averageRow,
+          `${report.total_students} students`
+        );
+
+        addCell(
+          averageRow,
+          `${Number(
+            report.class_average.attendance_percentage
+          ).toFixed(2)}%`,
+          true
+        );
+
+        addCell(
+          averageRow,
+          Number(
+            report.class_average.average_marks
+          ).toFixed(2),
+          true
+        );
+
+        tfoot.appendChild(averageRow);
+
+        message.textContent =
+          `Report for ${report.branch}, Semester ${report.semester}`;
+      }
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        message.textContent = 'Generating report...';
+
+        tbody.replaceChildren();
+        tfoot.replaceChildren();
+
+        const branch =
+          document.getElementById('report-branch').value;
+
+        const semester =
+          document.getElementById('report-semester').value;
+
+        try {
+          const result = await api(
+            `/reports/branch?branch=${encodeURIComponent(branch)}&semester=${encodeURIComponent(semester)}`
+          );
+
+          displayReport(result.report);
+
+        } catch (error) {
+          message.textContent = error.message;
+        }
+      });
+    })();
+  </script>
+
 </body>
 </html>
