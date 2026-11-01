@@ -1,4 +1,3 @@
-
 require('dotenv').config();
 
 const fs = require('fs');
@@ -29,6 +28,15 @@ function scheduleDailyBackup(hour = 2) {
     setTimeout(run, 24 * 60 * 60 * 1000);
   }, next - now);
 }
+
+// SRS-NF-002: an unexpected error must never take the server down during a demo.
+// Only the message is logged (no stack/objects that could carry request bodies or tokens).
+process.on('unhandledRejection', (err) => {
+  console.error(`[${new Date().toISOString()}] Unhandled rejection:`, (err && err.message) || err);
+});
+process.on('uncaughtException', (err) => {
+  console.error(`[${new Date().toISOString()}] Uncaught exception:`, (err && err.message) || err);
+});
 
 // Schedule automatic daily database backup.
 scheduleDailyBackup();
