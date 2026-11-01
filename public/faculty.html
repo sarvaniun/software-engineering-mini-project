@@ -82,7 +82,37 @@
     <!-- Student search is handled separately -->
     <section class="panel" id="search-panel">
       <h2>Search Students</h2>
-      <p class="placeholder">Search student records.</p>
+
+      <input type="search" id="student-q" placeholder="Roll no or name">
+      <select id="student-branch">
+        <option value="">All branches</option>
+        <option value="CSE">CSE</option>
+        <option value="ECE">ECE</option>
+      </select>
+      <select id="student-semester">
+        <option value="">All semesters</option>
+        <option value="1">Semester 1</option>
+        <option value="2">Semester 2</option>
+        <option value="3">Semester 3</option>
+        <option value="4">Semester 4</option>
+        <option value="5">Semester 5</option>
+        <option value="6">Semester 6</option>
+        <option value="7">Semester 7</option>
+        <option value="8">Semester 8</option>
+      </select>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Roll no</th>
+            <th>Name</th>
+            <th>Branch</th>
+            <th>Sem</th>
+          </tr>
+        </thead>
+        <tbody id="search-results"></tbody>
+      </table>
+      <p id="search-msg"></p>
     </section>
   </main>
 
@@ -93,5 +123,6 @@
   <!-- Feature-specific scripts -->
   <script src="/js/attendance.js"></script>
   <script src="/js/marks.js"></script>
+  <script src="/js/student-search.js"></script>
 </body>
 </html>

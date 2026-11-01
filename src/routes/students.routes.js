@@ -7,10 +7,12 @@ const router = express.Router();
 
 // GET /api/students -> list of student records (admin/faculty)
 // ?inactive=1 (or showInactive=1) includes deactivated students.
+// ?q=<roll no or part of name>&branch=<CSE|ECE>&semester=<1-8> filter the list (SRSF-014); filters combine.
 router.get('/', allow('admin', 'faculty'), async (req, res, next) => {
   try {
     const showInactive = req.query.inactive === '1' || req.query.showInactive === '1' || req.query.includeInactive === '1';
-    const students = await studentsService.listStudents(showInactive);
+    const { q, branch, semester } = req.query;
+    const students = await studentsService.listStudents(showInactive, { q, branch, semester });
     res.json({ status: 'success', students, data: students, records: students });
   } catch (err) {
     next(err);

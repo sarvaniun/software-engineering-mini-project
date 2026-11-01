@@ -23,11 +23,30 @@ function isDuplicate(err) {
     /duplicate/i.test(err.message || '')));
 }
 
-async function listStudents(showInactive) {
-  if (showInactive) {
-    return rowsOf('SELECT id, user_id, roll_no, name, branch, semester, email, phone, is_active FROM students ORDER BY id', []);
+async function listStudents(showInactive, { q, branch, semester } = {}) {
+  const where = [];
+  const params = [];
+  if (!showInactive) where.push('is_active = 1');
+  const term = String(q || '').trim();
+  if (term) {
+    where.push('(roll_no = ? OR name LIKE ?)');
+    params.push(term, `%${term}%`);
   }
-  return rowsOf('SELECT id, user_id, roll_no, name, branch, semester, email, phone, is_active FROM students WHERE is_active = 1 ORDER BY id', []);
+  const branchName = String(branch || '').trim();
+  if (branchName) {
+    where.push('branch = ?');
+    params.push(branchName);
+  }
+  if (semester) {
+    const sem = Number(semester);
+    if (!Number.isInteger(sem) || sem < 1 || sem > 8) {
+      throw new AppError(400, 'INVALID_SEMESTER', 'semester must be an integer between 1 and 8');
+    }
+    where.push('semester = ?');
+    params.push(sem);
+  }
+  return rowsOf('SELECT id, user_id, roll_no, name, branch, semester, email, phone, is_active FROM students'
+    + (where.length ? ' WHERE ' + where.join(' AND ') : '') + ' ORDER BY id', params);
 }
 
 async function deactivateStudent(id, adminId) {

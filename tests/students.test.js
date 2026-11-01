@@ -63,6 +63,26 @@ describe('GET /api/students', () => {
   });
 });
 
+describe('GET /api/students search (SRSF-014, TC9)', () => {
+  it('passes q, branch and semester to SQL as placeholders', async () => {
+    db.query.mockResolvedValueOnce([[]]);
+    const res = await request(app).get('/api/students?q=ar&branch=ECE&semester=3').set('Authorization', `Bearer ${adminToken}`);
+    expect(res.statusCode).toBe(200);
+    const [sql, params] = db.query.mock.calls[0];
+    expect(sql).toContain('(roll_no = ? OR name LIKE ?)');
+    expect(sql).toContain('branch = ?');
+    expect(sql).toContain('semester = ?');
+    expect(params).toEqual(['ar', '%ar%', 'ECE', 3]);
+  });
+
+  it('returns 400 for a semester outside 1-8', async () => {
+    const res = await request(app).get('/api/students?semester=9').set('Authorization', `Bearer ${adminToken}`);
+    expect(res.statusCode).toBe(400);
+    expect(res.body.errorCode).toBe('INVALID_SEMESTER');
+    expect(db.query).not.toHaveBeenCalled();
+  });
+});
+
 describe('GET /api/students/:id', () => {
   it('returns one student', async () => {
     db.query.mockResolvedValueOnce([[{ id: 1, roll_no: 'R1', name: 'N1', branch: 'CSE', semester: 5, email: null, phone: null, is_active: 1 }]]);
