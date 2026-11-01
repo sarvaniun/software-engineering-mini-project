@@ -7,3 +7,4 @@ coverage/
 # Local HTTPS certificates
 certs/*.key
 certs/*.crt
+certs/
