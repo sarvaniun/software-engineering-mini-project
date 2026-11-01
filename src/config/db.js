@@ -10,4 +10,20 @@ const pool = mysql.createPool({
   connectionLimit: 10,
 });
 
+// Runs fn on one connection in a transaction; commits on success, rolls back and rethrows on error.
+pool.transaction = async (fn) => {
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+    const result = await fn(conn);
+    await conn.commit();
+    return result;
+  } catch (err) {
+    await conn.rollback();
+    throw err;
+  } finally {
+    conn.release();
+  }
+};
+
 module.exports = pool;

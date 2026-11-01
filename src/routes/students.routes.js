@@ -2,7 +2,6 @@ const express = require('express');
 const studentsService = require('../services/students.service');
 const { allow } = require('../middleware/auth');
 const AppError = require('../utils/AppError');
-const { logAudit } = require('../utils/audit');
 
 const router = express.Router();
 
@@ -24,7 +23,6 @@ router.get('/', allow('admin', 'faculty'), async (req, res, next) => {
 router.patch('/:id/deactivate', allow('admin'), async (req, res, next) => {
   try {
     const student = await studentsService.deactivateStudent(req.params.id, req.user.id);
-    await logAudit('students', student.id, 'DEACTIVATE', req.user.id);
     res.json({ status: 'success', student });
   } catch (err) {
     next(err);
@@ -55,7 +53,6 @@ router.get('/:id/audit', allow('admin'), async (req, res, next) => {
 router.put('/:id', allow('admin'), async (req, res, next) => {
   try {
     const student = await studentsService.updateStudent(req.params.id, req.body || {}, req.user.id);
-    await logAudit('students', student.id, 'UPDATE', req.user.id, req.body || {});
     res.json({ status: 'success', id: req.params.id, student });
   } catch (err) {
     next(err);
@@ -66,7 +63,6 @@ router.put('/:id', allow('admin'), async (req, res, next) => {
 router.post('/', allow('admin'), async (req, res, next) => {
   try {
     const student = await studentsService.addStudent(req.body || {}, req.user.id);
-    await logAudit('students', student.id, 'CREATE', req.user.id, { roll_no: student.roll_no });
     res.status(201).json({ status: 'success', id: student.id, roll_no: student.roll_no, name: student.name, branch: student.branch, semester: student.semester, student });
   } catch (err) {
     next(err);

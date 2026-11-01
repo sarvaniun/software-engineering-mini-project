@@ -185,16 +185,18 @@ router.post('/attendance', allow('faculty'), async (req, res, next) => {
     ]);
 
     // Re-marking the same student, subject and date updates the existing row.
-    await db.query(
-      `INSERT INTO attendance
-         (student_id, subject_id, class_date, present, marked_by)
-       VALUES ${tuples}
-       ON DUPLICATE KEY UPDATE
-         present = VALUES(present),
-         marked_by = VALUES(marked_by)`,
-      params
-    );
-    await logAudit('attendance', classId, 'MARK', req.user.id, { date });
+    await db.transaction(async (tx) => {
+      await tx.query(
+        `INSERT INTO attendance
+           (student_id, subject_id, class_date, present, marked_by)
+         VALUES ${tuples}
+         ON DUPLICATE KEY UPDATE
+           present = VALUES(present),
+           marked_by = VALUES(marked_by)`,
+        params
+      );
+      await logAudit(tx, 'attendance', classId, 'MARK', req.user.id, { date });
+    });
 
     const presentCount = records.filter((record) => record.present === 1).length;
     const updatedPercentage = attendancePercent(presentCount, records.length);
@@ -415,18 +417,20 @@ router.post('/marks', allow('faculty'), async (req, res, next) => {
     ]);
 
     // The unique key on (student_id, subject_id) prevents duplicate marks rows.
-    await db.query(
-      `INSERT INTO marks (student_id, subject_id, marks, entered_by)
-       VALUES ${tuples}
-       ON DUPLICATE KEY UPDATE
-         marks = VALUES(marks),
-         entered_by = VALUES(entered_by)`,
-      params
-    );
-    // shortcut: one insert per student, batch the audit rows if a class save gets slow
-    for (const record of records) {
-      await logAudit('marks', record.studentId, 'UPSERT', req.user.id, { subjectId, marks: record.marks });
-    }
+    await db.transaction(async (tx) => {
+      await tx.query(
+        `INSERT INTO marks (student_id, subject_id, marks, entered_by)
+         VALUES ${tuples}
+         ON DUPLICATE KEY UPDATE
+           marks = VALUES(marks),
+           entered_by = VALUES(entered_by)`,
+        params
+      );
+      // shortcut: one insert per student, batch the audit rows if a class save gets slow
+      for (const record of records) {
+        await logAudit(tx, 'marks', record.studentId, 'UPSERT', req.user.id, { subjectId, marks: record.marks });
+      }
+    });
 
     res.json({
       status: 'success',
