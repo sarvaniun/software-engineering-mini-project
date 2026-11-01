@@ -5,6 +5,7 @@ const db = require('../config/db');
 const { allow } = require('../middleware/auth');
 const AppError = require('../utils/AppError');
 const { attendancePercent } = require('../utils/attendance');
+const { logAudit } = require('../utils/audit');
 
 function rowsOf(result) {
   const first = Array.isArray(result) ? result[0] : result;
@@ -193,6 +194,7 @@ router.post('/attendance', allow('faculty'), async (req, res, next) => {
          marked_by = VALUES(marked_by)`,
       params
     );
+    await logAudit('attendance', classId, 'MARK', req.user.id, { date });
 
     const presentCount = records.filter((record) => record.present === 1).length;
     const updatedPercentage = attendancePercent(presentCount, records.length);
@@ -421,6 +423,10 @@ router.post('/marks', allow('faculty'), async (req, res, next) => {
          entered_by = VALUES(entered_by)`,
       params
     );
+    // shortcut: one insert per student, batch the audit rows if a class save gets slow
+    for (const record of records) {
+      await logAudit('marks', record.studentId, 'UPSERT', req.user.id, { subjectId, marks: record.marks });
+    }
 
     res.json({
       status: 'success',

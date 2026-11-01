@@ -84,6 +84,19 @@ async function getStudentById(id) {
   return rows[0];
 }
 
+async function getLastEdit(id) {
+  const rows = await rowsOf(
+    `SELECT a.action, a.changed_at, u.full_name
+     FROM audit_log a
+     JOIN users u ON u.id = a.changed_by
+     WHERE a.table_name = 'students' AND a.record_id = ?
+     ORDER BY a.changed_at DESC, a.id DESC
+     LIMIT 1`,
+    [id]
+  );
+  return rows[0] || null;
+}
+
 async function updateStudent(id, data, adminId) {
   const numericId = Number(id);
   if (!Number.isInteger(numericId) || numericId < 1) {
@@ -258,4 +271,4 @@ async function addStudent(data, adminId) {
   };
 }
 
-module.exports = { listStudents, getStudentById, addStudent, updateStudent, deactivateStudent, DEFAULT_STUDENT_PASSWORD };
+module.exports = { listStudents, getStudentById, getLastEdit, addStudent, updateStudent, deactivateStudent, DEFAULT_STUDENT_PASSWORD };
