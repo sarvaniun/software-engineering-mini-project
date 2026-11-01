@@ -270,7 +270,7 @@
         }
       });
 
-      window.__editStudent = (id) => {
+      window.__editStudent = async (id) => {
         const s = students.find(
           x => String(x.id) === String(id)
         );
@@ -285,6 +285,16 @@
         editForm.elements.phone.value = s.phone || '';
 
         editMsg.textContent = 'Loaded student ' + s.roll_no;
+
+        try {
+          const { lastEdit } = await api('/students/' + s.id + '/audit');
+          if (lastEdit) {
+            const when = new Date(lastEdit.changed_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+            editMsg.textContent += `. Last edited by ${lastEdit.full_name} on ${when}`;
+          }
+        } catch (e) {
+          editMsg.textContent = e.message;
+        }
       };
 
       window.__deactivateStudent = async (id) => {

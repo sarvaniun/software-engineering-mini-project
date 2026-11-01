@@ -39,6 +39,16 @@ router.get('/:id', allow('admin', 'faculty'), async (req, res, next) => {
   }
 });
 
+// GET /api/students/:id/audit -> who last changed this record, for "Last edited by" (admin only)
+router.get('/:id/audit', allow('admin'), async (req, res, next) => {
+  try {
+    const lastEdit = await studentsService.getLastEdit(req.params.id);
+    res.json({ status: 'success', lastEdit });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // PUT /api/students/:id -> edit a student record (admin only)
 router.put('/:id', allow('admin'), async (req, res, next) => {
   try {

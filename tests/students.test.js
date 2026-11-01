@@ -1,5 +1,9 @@
 process.env.JWT_SECRET = 'test-secret';
-jest.mock('../src/config/db', () => ({ query: jest.fn() }));
+jest.mock('../src/config/db', () => {
+  const db = { query: jest.fn() };
+  db.transaction = (fn) => fn(db);
+  return db;
+});
 
 const request = require('supertest');
 const jwt = require('jsonwebtoken');
