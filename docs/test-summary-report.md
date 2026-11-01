@@ -1,133 +1,37 @@
-# Test Summary Report — Student Record System
+# Test Summary Report: Student Record System v1.0
 
-**Project:** Student Record System  
-**Team:** Team 7  
-**Version:** 1.0  
-**Report date:** 31 October 2026  
-**Test framework:** Jest  
-**Environment:** Node.js, Express and MySQL 8.0
+**Test lead:** Upadrasta Naga Sarvani · **Final run:** 01-11-2026 on `main` · **Environment:** Node.js 22, MySQL 8, Chrome, Ubuntu (HTTP :3000 and HTTPS :3443)
 
-## 1. Introduction
+## Results
 
-This report summarizes the testing evidence available for the Student Record System. It records automated test execution and selected manual verification activities.
+| Type | Planned | Executed | Pass | Partial | Fail |
+| --- | --- | --- | --- | --- | --- |
+| Functional (TC1–TC15) | 15 | 15 | 13 | 1 (TC11) | 1 (TC12) |
+| Security (SEC1–SEC5) | 5 | 5 | 5 | 0 | 0 |
+| Non-functional (NF1–NF5) | 5 | 5 | 5 | 0 | 0 |
+| Automated (Jest) | 117 | 117 | 117 | 0 | 0 |
 
-The report follows the testing deliverables defined in Section 8 of the Software Test Plan (STP).
+Automated tests also run on every pull request via GitHub Actions (CI); branch protection requires a green run and one approval before merging. Detailed results: docs/test-cases.md. Traceability: docs/RTM.md.
 
-## 2. Testing Scope
+## Open defects at v1.0
+- **TC12 (SRSF-022 mark sheet): Fail.** GPA was not displayed on the student dashboard.
+- **TC11 (SRSF-021 GPA): Partial.** GPA is computed correctly by the API but not displayed on the student dashboard.
 
-The STP identifies the following modules for testing:
+## Defects found during reviews (all fixed and re-tested)
+- Edit student with an invalid id returned 500 → now 400/404 (#44)
+- Clearing an optional field (phone) was not saved (#44)
+- Deactivate sent a duplicate request with a literal `${s.id}` → fixed (#45)
+- Edit button stopped working after the deactivate fix (regression) → fixed (#45)
+- Blank required fields on edit returned 500 → now 400 (#46)
+- CI failing due to an out-of-sync package-lock.json → fixed (#51)
+- Private key files included in two PRs → removed before merging; merged with squash so they never entered main
 
-- Login and role-based access.
-- Student record management.
-- Attendance management.
-- Marks and academic records.
-- GPA and mark sheet functionality.
-- Branch/class reports.
-- Daily database backup.
-- Security and session management.
-- Performance and usability requirements.
+## Known limitations
+- Deactivated students can still log in (the SRS does not specify this behaviour)
+- Roll-number search matches the full roll number only; names match partially
+- The marks form requires a value for every student in the class
+- The JWT expires 15 minutes after login even for active users (no token refresh; optional per the SRS)
+- HTTPS uses a self-signed certificate for local development
 
-## 3. Automated Test Results
-
-**Command executed:**
-
-`npm test`
-
-**Latest recorded result on the documentation branch:**
-
-| Metric | Result |
-|---|---:|
-| Test suites passed | 9 |
-| Test suites failed | 0 |
-| Total tests passed | 61 |
-| Total tests failed | 0 |
-| Snapshots | 0 |
-
-**Overall automated test result: PASS**
-
-The automated test suites cover authentication, attendance, attendance routes, marks routes, student records, roles, password handling, health checks and user profile functionality.
-
-## 4. Manual Test Execution Evidence
-
-### Test 1: Attendance persistence
-
-**Procedure:**
-1. Logged in as faculty.
-2. Marked attendance for five CSE students in CS501.
-3. Updated an existing attendance record.
-4. Verified the records in MySQL.
-5. Restarted the Node.js application.
-6. Checked the student dashboard.
-
-**Expected result:** Previously saved attendance remains available after an application restart.
-
-**Actual result:** The CS501 attendance record remained visible.
-
-**Status:** PASS
-
-### Test 2: Marks persistence
-
-**Procedure:**
-1. Entered marks for five CSE students in CS501.
-2. Updated Aarav Sharma's marks from 68 to 69.
-3. Verified the value in MySQL.
-4. Restarted the Node.js application.
-5. Checked the student dashboard.
-
-**Expected result:** Previously saved marks remain available after an application restart.
-
-**Actual result:** The dashboard displayed 69 marks out of 100.
-
-**Status:** PASS
-
-These two manual tests are recorded in `docs/test-execution-log.md`.
-
-## 5. Additional Verification
-
-The following checks were performed during development:
-
-- HTTP health endpoint returned `{"status":"ok"}` on port 3000.
-- HTTPS health endpoint returned `{"status":"ok"}` on port 3443 when tested with certificate verification disabled for the local self-signed certificate.
-- Branch/class report endpoint automated tests passed on the feature branch for Issue #27.
-- Local database backup creation and restoration were manually verified during Issue #28 development.
-
-These results are development verification evidence and should not be interpreted as proof that every planned STP test has passed.
-
-## 6. Test Environment
-
-| Component | Environment |
-|---|---|
-| Backend | Node.js and Express |
-| Database | MySQL 8.0 |
-| Frontend | HTML, CSS and JavaScript |
-| Automated testing | Jest |
-| API testing | Supertest |
-| Browser | Google Chrome |
-| Operating system | Windows |
-
-## 7. Defects and Limitations
-
-The available execution log records successful attendance and marks persistence checks.
-
-A complete consolidated defect register was not available in the execution evidence reviewed for this report.
-
-The following STP activities still require final confirmation and evidence:
-
-- Account lockout and session timeout testing.
-- HTTPS certificate and security validation.
-- Edit-traceability verification.
-- Performance testing against the two-second requirement.
-- Laptop and phone usability testing.
-- Full execution of planned test cases and RTM updates.
-
-## 8. Conclusion
-
-The latest recorded automated test execution completed successfully with 61 passing tests across 9 test suites and no automated test failures.
-
-Manual verification also confirmed attendance and marks persistence across a Node.js application restart.
-
-The project has additional development verification evidence for HTTPS, branch/class reports and database backups.
-
-However, the full STP exit criteria cannot yet be declared satisfied until the remaining planned tests, defect status and Requirements Traceability Matrix have been reviewed and updated.
-
-**Report status:** Development test summary — pending final team validation.
+## Exit criteria (STP §5)
+All planned tests were executed and the RTM is updated. Two functional requirements remain open (SRSF-021 partial, SRSF-022 failed); neither is a security or data-integrity defect. All security and non-functional tests pass.
