@@ -1,6 +1,10 @@
 // Shared by every page: stores the login token and calls the API with it attached.
 // Teammates: use api('/students') etc. for every request. It adds the token for you.
 
+// SRSF-004: log out after this many minutes without any activity (one place to change it)
+const SESSION_TIMEOUT_MINUTES = 15;
+
+
 const Auth = {
   save(data) {
     sessionStorage.setItem('token', data.token);
