@@ -127,3 +127,16 @@ select {
 #marks-form[hidden] {
   display: none;
 }
+
+/* Responsive layout (SRS-NF-005, #31): wide tables scroll sideways inside .table-wrap */
+table { width: 100%; border-collapse: collapse; font-size: .95rem; }
+th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.table-wrap { overflow-x: auto; }
+.panel input:not([type="radio"]), .panel select { margin-bottom: 8px; }
+
+@media (max-width: 600px) {
+  main { padding: 10px; }
+  .panel { padding: 12px; }
+  .topbar h1 { font-size: 1rem; }
+  form button { width: 100%; }
+}

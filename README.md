@@ -21,6 +21,7 @@ A web application for one college to manage student records, attendance and mark
 - Software Requirements Specification (SRS) v1.0
 - Software Architecture & Design Specification (SAD) v1.0
 - Software Test Plan (STP) v1.0
+- Deviations log: docs/DEVIATIONS.md
 - Sprint 1 demo video: demo/sprint1_demo_video.mp4
 
 ## Tech Stack
