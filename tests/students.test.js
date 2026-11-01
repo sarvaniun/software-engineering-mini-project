@@ -1,5 +1,9 @@
 process.env.JWT_SECRET = 'test-secret';
-jest.mock('../src/config/db', () => ({ query: jest.fn() }));
+jest.mock('../src/config/db', () => {
+  const db = { query: jest.fn() };
+  db.transaction = (fn) => fn(db);
+  return db;
+});
 
 const request = require('supertest');
 const jwt = require('jsonwebtoken');
@@ -60,6 +64,26 @@ describe('GET /api/students', () => {
     const res = await request(app).get('/api/students').set('Authorization', `Bearer ${adminToken}`);
     expect(res.statusCode).toBe(200);
     expect(res.body.students).toHaveLength(1);
+  });
+});
+
+describe('GET /api/students search (SRSF-014, TC9)', () => {
+  it('passes q, branch and semester to SQL as placeholders', async () => {
+    db.query.mockResolvedValueOnce([[]]);
+    const res = await request(app).get('/api/students?q=ar&branch=ECE&semester=3').set('Authorization', `Bearer ${adminToken}`);
+    expect(res.statusCode).toBe(200);
+    const [sql, params] = db.query.mock.calls[0];
+    expect(sql).toContain('(roll_no = ? OR name LIKE ?)');
+    expect(sql).toContain('branch = ?');
+    expect(sql).toContain('semester = ?');
+    expect(params).toEqual(['ar', '%ar%', 'ECE', 3]);
+  });
+
+  it('returns 400 for a semester outside 1-8', async () => {
+    const res = await request(app).get('/api/students?semester=9').set('Authorization', `Bearer ${adminToken}`);
+    expect(res.statusCode).toBe(400);
+    expect(res.body.errorCode).toBe('INVALID_SEMESTER');
+    expect(db.query).not.toHaveBeenCalled();
   });
 });
 

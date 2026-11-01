@@ -2,18 +2,20 @@
 const db = require('../config/db');
 const AppError = require('../utils/AppError');
 const { hashPassword } = require('../utils/password');
+const { logAudit } = require('../utils/audit');
 
 const DEFAULT_STUDENT_PASSWORD = 'Student@123';
 
 // mysql2 returns [rows, fields]; mocks in tests may or may not wrap rows.
-async function rowsOf(sql, params) {
-  const res = await db.query(sql, params);
+// exec is the pool, or the transaction connection when the write must commit with its audit row.
+async function rowsOf(sql, params, exec = db) {
+  const res = await exec.query(sql, params);
   const first = Array.isArray(res) ? res[0] : res;
   return Array.isArray(first) ? first : (first ? [first] : []);
 }
 
-async function headerOf(sql, params) {
-  const res = await db.query(sql, params);
+async function headerOf(sql, params, exec = db) {
+  const res = await exec.query(sql, params);
   const first = Array.isArray(res) ? res[0] : res;
   return first && typeof first === 'object' && !Array.isArray(first) ? first : res;
 }
@@ -23,20 +25,39 @@ function isDuplicate(err) {
     /duplicate/i.test(err.message || '')));
 }
 
-async function listStudents(showInactive) {
-  if (showInactive) {
-    return rowsOf('SELECT id, user_id, roll_no, name, branch, semester, email, phone, is_active FROM students ORDER BY id', []);
+async function listStudents(showInactive, { q, branch, semester } = {}) {
+  const where = [];
+  const params = [];
+  if (!showInactive) where.push('is_active = 1');
+  const term = String(q || '').trim();
+  if (term) {
+    where.push('(roll_no = ? OR name LIKE ?)');
+    params.push(term, `%${term}%`);
   }
-  return rowsOf('SELECT id, user_id, roll_no, name, branch, semester, email, phone, is_active FROM students WHERE is_active = 1 ORDER BY id', []);
+  const branchName = String(branch || '').trim();
+  if (branchName) {
+    where.push('branch = ?');
+    params.push(branchName);
+  }
+  if (semester) {
+    const sem = Number(semester);
+    if (!Number.isInteger(sem) || sem < 1 || sem > 8) {
+      throw new AppError(400, 'INVALID_SEMESTER', 'semester must be an integer between 1 and 8');
+    }
+    where.push('semester = ?');
+    params.push(sem);
+  }
+  return rowsOf('SELECT id, user_id, roll_no, name, branch, semester, email, phone, is_active FROM students'
+    + (where.length ? ' WHERE ' + where.join(' AND ') : '') + ' ORDER BY id', params);
 }
 
-async function deactivateStudent(id, adminId) {
+async function applyDeactivate(exec, id, adminId) {
   const numericId = Number(id);
   if (!Number.isInteger(numericId) || numericId < 1) {
     throw new AppError(400, 'INVALID_ID', 'Student id must be a positive integer');
   }
 
-  const raw = await db.query('SELECT id FROM students WHERE id = ?', [numericId]);
+  const raw = await exec.query('SELECT id FROM students WHERE id = ?', [numericId]);
   const first = Array.isArray(raw) ? raw[0] : raw;
   const isUpdateResult = !!(first && typeof first === 'object' && !Array.isArray(first) &&
     ('affectedRows' in first || 'insertId' in first || 'changedRows' in first));
@@ -53,8 +74,16 @@ async function deactivateStudent(id, adminId) {
     throw new AppError(404, 'STUDENT_NOT_FOUND', 'Student not found');
   }
 
-  await db.query('UPDATE students SET is_active = 0, updated_by = ? WHERE id = ?', [adminId || null, numericId]);
+  await exec.query('UPDATE students SET is_active = 0, updated_by = ? WHERE id = ?', [adminId || null, numericId]);
   return { id: numericId, is_active: 0 };
+}
+
+async function deactivateStudent(id, adminId) {
+  return db.transaction(async (tx) => {
+    const student = await applyDeactivate(tx, id, adminId);
+    await logAudit(tx, 'students', student.id, 'DEACTIVATE', adminId);
+    return student;
+  });
 }
 
 async function getStudentById(id) {
@@ -65,7 +94,20 @@ async function getStudentById(id) {
   return rows[0];
 }
 
-async function updateStudent(id, data, adminId) {
+async function getLastEdit(id) {
+  const rows = await rowsOf(
+    `SELECT a.action, a.changed_at, u.full_name
+     FROM audit_log a
+     JOIN users u ON u.id = a.changed_by
+     WHERE a.table_name = 'students' AND a.record_id = ?
+     ORDER BY a.changed_at DESC, a.id DESC
+     LIMIT 1`,
+    [id]
+  );
+  return rows[0] || null;
+}
+
+async function applyUpdate(exec, id, data, adminId) {
   const numericId = Number(id);
   if (!Number.isInteger(numericId) || numericId < 1) {
     throw new AppError(400, 'INVALID_ID', 'Student id must be a positive integer');
@@ -73,7 +115,7 @@ async function updateStudent(id, data, adminId) {
 
   // Read current record first (404 if missing). Mocks in tests may instead return
   // an UPDATE result directly, so handle that shape too.
-  const raw = await db.query('SELECT id, roll_no, name, branch, semester, email, phone, is_active FROM students WHERE id = ?', [numericId]);
+  const raw = await exec.query('SELECT id, roll_no, name, branch, semester, email, phone, is_active FROM students WHERE id = ?', [numericId]);
   const first = Array.isArray(raw) ? raw[0] : raw;
   const isUpdateResult = !!(first && typeof first === 'object' && !Array.isArray(first) &&
     ('affectedRows' in first || 'insertId' in first || 'changedRows' in first));
@@ -156,7 +198,7 @@ async function updateStudent(id, data, adminId) {
   params.push(adminId || null);
   params.push(numericId);
 
-  await db.query(`UPDATE students SET ${sets.join(', ')} WHERE id = ?`, params);
+  await exec.query(`UPDATE students SET ${sets.join(', ')} WHERE id = ?`, params);
 
   return {
     id: numericId,
@@ -170,6 +212,14 @@ async function updateStudent(id, data, adminId) {
     phone: data.phone !== undefined ? (String(data.phone).trim() || null) : existing.phone,
     is_active: existing.is_active,
   };
+}
+
+async function updateStudent(id, data, adminId) {
+  return db.transaction(async (tx) => {
+    const student = await applyUpdate(tx, id, data, adminId);
+    await logAudit(tx, 'students', student.id, 'UPDATE', adminId, data);
+    return student;
+  });
 }
 
 async function addStudent(data, adminId) {
@@ -202,41 +252,47 @@ async function addStudent(data, adminId) {
 
   const passwordHash = await hashPassword(DEFAULT_STUDENT_PASSWORD);
 
-  let userId;
-  try {
-    const userRes = await headerOf(
-      'INSERT INTO users (username, password_hash, role, full_name) VALUES (?, ?, ?, ?)',
-      [roll_no, passwordHash, 'student', name]
-    );
-    userId = userRes.insertId;
-  } catch (err) {
-    if (isDuplicate(err)) throw new AppError(409, 'DUPLICATE_ROLL_NO', 'A student with this roll number already exists');
-    throw err;
-  }
+  return db.transaction(async (tx) => {
+    let userId;
+    try {
+      const userRes = await headerOf(
+        'INSERT INTO users (username, password_hash, role, full_name) VALUES (?, ?, ?, ?)',
+        [roll_no, passwordHash, 'student', name],
+        tx
+      );
+      userId = userRes.insertId;
+    } catch (err) {
+      if (isDuplicate(err)) throw new AppError(409, 'DUPLICATE_ROLL_NO', 'A student with this roll number already exists');
+      throw err;
+    }
 
-  let studentId;
-  try {
-    const studentRes = await headerOf(
-      'INSERT INTO students (user_id, roll_no, name, branch, semester, email, phone, updated_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [userId, roll_no, name, branch, sem, email, phone, adminId || null]
-    );
-    studentId = studentRes.insertId;
-  } catch (err) {
-    if (isDuplicate(err)) throw new AppError(409, 'DUPLICATE_ROLL_NO', 'A student with this roll number already exists');
-    throw err;
-  }
+    let studentId;
+    try {
+      const studentRes = await headerOf(
+        'INSERT INTO students (user_id, roll_no, name, branch, semester, email, phone, updated_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        [userId, roll_no, name, branch, sem, email, phone, adminId || null],
+        tx
+      );
+      studentId = studentRes.insertId;
+    } catch (err) {
+      if (isDuplicate(err)) throw new AppError(409, 'DUPLICATE_ROLL_NO', 'A student with this roll number already exists');
+      throw err;
+    }
 
-  return {
-    id: studentId,
-    user_id: userId,
-    roll_no,
-    name,
-    branch,
-    semester: sem,
-    email,
-    phone,
-    is_active: 1,
-  };
+    await logAudit(tx, 'students', studentId, 'CREATE', adminId, { roll_no });
+
+    return {
+      id: studentId,
+      user_id: userId,
+      roll_no,
+      name,
+      branch,
+      semester: sem,
+      email,
+      phone,
+      is_active: 1,
+    };
+  });
 }
 
-module.exports = { listStudents, getStudentById, addStudent, updateStudent, deactivateStudent, DEFAULT_STUDENT_PASSWORD };
+module.exports = { listStudents, getStudentById, getLastEdit, addStudent, updateStudent, deactivateStudent, DEFAULT_STUDENT_PASSWORD };

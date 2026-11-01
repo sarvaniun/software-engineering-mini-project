@@ -1,3 +1,4 @@
+
 # Student Record System
 
 ![CI](https://github.com/sarvaniun/software-engineering-mini-project/actions/workflows/ci.yml/badge.svg)
@@ -49,10 +50,12 @@ A web application for one college to manage student records, attendance and mark
 - Software Architecture & Design Specification (SAD) v1.0
 - Software Test Plan (STP) v1.0
 - [Deviations Log](docs/DEVIATIONS.md)
+- [Test Cases](docs/test-cases.md)
+- [Requirements Traceability Matrix](docs/RTM.md)
 - [Test Summary Report](docs/test-summary-report.md)
 - [Test Execution Log](docs/test-execution-log.md)
 - Sprint 1 demo video: [demo/sprint1_demo_video.mp4](demo/sprint1_demo_video.mp4)
-- Sprint 2 demo video: To be added after the final recording.
+- Sprint 2 demo video: [demo/sprint2-demo.mp4](demo/sprint2-demo.mp4)
 
 ## Tech Stack
 
@@ -103,7 +106,7 @@ cd software-engineering-mini-project
 ### 2. Install dependencies
 
 ```bash
-npm install
+npm ci
 ```
 
 ### 3. Configure environment variables
@@ -351,3 +354,53 @@ mysql -u <user> -p student_records_restore_test < backups/backup-YYYY-MM-DD.sql
 The system covers student record management, role-based access, attendance, marks, GPA calculation, mark sheet generation, basic reports and database backup.
 
 Fee payment, hostel allocation, library management and multi-institution support are outside the scope of this project.
+
+## Local HTTPS Setup (Issue #23)
+
+The Student Record System supports both HTTP and HTTPS for local development.
+
+### Requirements
+
+- Node.js and npm
+- OpenSSL
+
+### Generate a local self-signed certificate
+
+Run these commands from the project root:
+
+```powershell
+New-Item -ItemType Directory -Force certs
+
+openssl req -x509 -newkey rsa:2048 -nodes -keyout certs/server.key -out certs/server.crt -days 365 -subj "/CN=localhost" -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
+```
+
+### Start the application
+
+```powershell
+npm start
+```
+
+The application starts on:
+
+- HTTP: http://localhost:3000
+- HTTPS: https://localhost:3443
+
+### Verify HTTPS
+
+```powershell
+curl.exe -k https://localhost:3443/api/health
+```
+
+Expected response:
+
+```json
+{"status":"ok"}
+```
+
+The `-k` option is used only for local testing with a self-signed certificate.
+
+### Certificate security
+
+The certificate and private key are generated locally and must not be committed to GitHub. The `certs/*.key` and `certs/*.crt` files are excluded through `.gitignore`.
+
+**Note:** Browsers may show a certificate authority warning because the local certificate is self-signed. This is expected for local development.
