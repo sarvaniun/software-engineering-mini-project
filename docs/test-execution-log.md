@@ -46,6 +46,30 @@
 
 **Status:** PASS
 
+## Test 4: Profile load and search performance (SRS-NF-001, #29)
+
+**Steps performed:**
+1. Created the schema from `db/schema.sql` on MySQL 8.0.40, loaded the base data with `db/seed.js`, then ran `node scripts/seed-many.js` to add 200 students (210 in total).
+2. Checked the indexes on `students`: `roll_no` (UNIQUE), `idx_name` and `idx_branch_sem`.
+3. Started the application from a local build with the search (#19) and audit (#24) changes merged, since neither is on `main` yet.
+4. Opened each page in headless Google Chrome, logged in with a seed account, and read the response time of each request from Chrome's network log. Ran three times; median and max are shown.
+
+**Expected result:** Each check completes in under 2 seconds.
+
+| Check | Records | Time (median / max) | Pass (< 2 s)? |
+| --- | --- | --- | --- |
+| Admin student list (`GET /api/students`) | 210 | 3 ms / 4 ms | ✓ |
+| Admin search, `q=ar` | 3 | 4 ms / 5 ms | ✓ |
+| Faculty search, exact roll no `PES2UG24CS150` | 1 | 4 ms / 4 ms | ✓ |
+| Faculty search, branch ECE and text `Test` | 100 | 6 ms / 6 ms | ✓ |
+| Student profile (`GET /api/me/profile`) | 1 | 2 ms / 2 ms | ✓ |
+
+**Actual result:** All five checks completed in 6 ms or less.
+
+**Status:** PASS
+
+**Limits:** The times are API response times as Chrome's network log records them, not DevTools readings taken by hand, and they do not include page paint. MySQL was a local 8.0.40 instance on the same machine as the app, so latency on the team's own MySQL setup may differ.
+
 ## Notes
 
 - The MySQL server remained running during the application-server restart test.
