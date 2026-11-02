@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -6,36 +7,71 @@
   <title>Student · Student Record System</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
+
 <body data-role="student">
   <header class="topbar">
     <h1>Student Dashboard</h1>
-    <div><span class="who" id="user-name"></span><button class="btn-secondary" id="logout">Logout</button></div>
+    <div>
+      <span class="who" id="user-name"></span>
+      <button class="btn-secondary" id="logout">Logout</button>
+    </div>
   </header>
+
   <main>
     <section class="panel" id="profile-panel">
       <h2>My Profile</h2>
       <div id="profile"></div>
     </section>
+
     <section class="panel" id="attendance-panel">
       <h2>My Attendance</h2>
       <div class="table-wrap">
-        <table id="attendance-table"><thead><tr><th>Subject</th><th>Total</th><th>Present</th><th>%</th></tr></thead><tbody></tbody></table>
+        <table id="attendance-table">
+          <thead>
+            <tr>
+              <th>Subject</th>
+              <th>Total</th>
+              <th>Present</th>
+              <th>%</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
       </div>
     </section>
+
     <section class="panel" id="marks-panel">
       <h2>My Marks</h2>
+
+      <p>
+        <a href="/marksheet.html">View / Download Mark Sheet</a>
+      </p>
+
       <div class="table-wrap">
-        <table id="marks-table"><thead><tr><th>Subject</th><th>Marks</th><th>Max</th></tr></thead><tbody></tbody></table>
+        <table id="marks-table">
+          <thead>
+            <tr>
+              <th>Subject</th>
+              <th>Marks</th>
+              <th>Max</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
       </div>
     </section>
   </main>
+
   <script src="/js/api.js"></script>
   <script src="/js/dashboard.js"></script>
+
   <script>
     (async function () {
+      // Load student profile
       try {
         const pRes = await api('/me/profile');
         const p = pRes.profile || pRes.student || pRes.data || {};
+
         document.getElementById('profile').innerHTML =
           '<p><strong>Roll no:</strong> ' + (p.roll_no || '') + '</p>' +
           '<p><strong>Name:</strong> ' + (p.name || '') + '</p>' +
@@ -43,25 +79,45 @@
           '<p><strong>Semester:</strong> ' + (p.semester || '') + '</p>' +
           '<p><strong>Email:</strong> ' + (p.email || '') + '</p>' +
           '<p><strong>Phone:</strong> ' + (p.phone || '') + '</p>';
-      } catch (e) { document.getElementById('profile').textContent = e.message; }
 
+      } catch (e) {
+        document.getElementById('profile').textContent = e.message;
+      }
+
+      // Load student attendance
       try {
         const aRes = await api('/me/attendance');
         const rows = aRes.attendance || aRes.data || [];
         const tbody = document.querySelector('#attendance-table tbody');
-        tbody.innerHTML = rows.map(r =>
-          '<tr><td>' + (r.code || r.name) + '</td><td>' + r.total + '</td><td>' + r.present + '</td><td>' + r.percentage + '</td></tr>'
-        ).join('');
-      } catch (e) { document.querySelector('#attendance-table tbody').innerHTML = '<tr><td colspan="4">' + e.message + '</td></tr>'; }
 
+        tbody.innerHTML = rows.map(r =>
+          '<tr><td>' + (r.code || r.name) +
+          '</td><td>' + r.total +
+          '</td><td>' + r.present +
+          '</td><td>' + r.percentage + '</td></tr>'
+        ).join('');
+
+      } catch (e) {
+        document.querySelector('#attendance-table tbody').innerHTML =
+          '<tr><td colspan="4">' + e.message + '</td></tr>';
+      }
+
+      // Load student marks
       try {
         const mRes = await api('/me/marks');
         const rows = mRes.marks || mRes.data || [];
         const tbody = document.querySelector('#marks-table tbody');
+
         tbody.innerHTML = rows.map(r =>
-          '<tr><td>' + (r.code || r.name) + '</td><td>' + (r.marks === null ? '' : r.marks) + '</td><td>' + r.max_marks + '</td></tr>'
+          '<tr><td>' + (r.code || r.name) +
+          '</td><td>' + (r.marks === null ? '' : r.marks) +
+          '</td><td>' + r.max_marks + '</td></tr>'
         ).join('');
-      } catch (e) { document.querySelector('#marks-table tbody').innerHTML = '<tr><td colspan="3">' + e.message + '</td></tr>'; }
+
+      } catch (e) {
+        document.querySelector('#marks-table tbody').innerHTML =
+          '<tr><td colspan="3">' + e.message + '</td></tr>';
+      }
     })();
   </script>
 </body>

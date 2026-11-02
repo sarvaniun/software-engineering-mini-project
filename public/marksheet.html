@@ -1,0 +1,134 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My Mark Sheet · Student Record System</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .marksheet-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .marksheet-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .gpa-display {
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+
+    .marksheet-details {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 8px 20px;
+    }
+
+    @media print {
+      .no-print,
+      .topbar {
+        display: none !important;
+      }
+
+      body {
+        background: white !important;
+        color: black !important;
+      }
+
+      main {
+        max-width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+
+      .panel {
+        box-shadow: none !important;
+        border: 1px solid #ccc;
+        break-inside: avoid;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th, td {
+        border: 1px solid #777 !important;
+        color: black !important;
+      }
+    }
+  </style>
+</head>
+
+<body data-role="student">
+  <header class="topbar">
+    <h1>My Mark Sheet</h1>
+    <div class="no-print">
+      <span class="who" id="user-name"></span>
+      <button class="btn-secondary" id="logout">Logout</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="panel no-print">
+      <div class="marksheet-header">
+        <h2>Mark Sheet</h2>
+        <div class="marksheet-actions">
+          <button class="btn-secondary" onclick="window.location.href='/student.html'">
+            Back to Dashboard
+          </button>
+          <button class="btn-primary" id="print-button" onclick="window.print()">
+            Print / Save as PDF
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Student Details</h2>
+      <div id="student-details" class="marksheet-details">
+        Loading student details...
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Subject-wise Marks</h2>
+      <div class="table-wrap">
+        <table id="marks-table">
+          <thead>
+            <tr>
+              <th>Subject Code</th>
+              <th>Subject Name</th>
+              <th>Marks Obtained</th>
+              <th>Maximum Marks</th>
+              <th>Credits</th>
+              <th>Grade Points</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="6">Loading marks...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Academic Performance</h2>
+      <p>GPA (10-point scale): <span id="gpa" class="gpa-display">Loading...</span></p>
+    </section>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/dashboard.js"></script>
+  <script src="/js/marksheet.js"></script>
+</body>
+</html>
