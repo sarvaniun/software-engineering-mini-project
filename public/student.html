@@ -18,11 +18,13 @@
   </header>
 
   <main>
+    <!-- Student Profile -->
     <section class="panel" id="profile-panel">
       <h2>My Profile</h2>
       <div id="profile"></div>
     </section>
 
+    <!-- Student Attendance -->
     <section class="panel" id="attendance-panel">
       <h2>My Attendance</h2>
       <div class="table-wrap">
@@ -40,6 +42,13 @@
       </div>
     </section>
 
+    <!-- GPA Section -->
+    <section class="panel" id="gpa-panel">
+      <h2>My GPA</h2>
+      <p id="gpa-value">Loading...</p>
+    </section>
+
+    <!-- Student Marks and Mark Sheet -->
     <section class="panel" id="marks-panel">
       <h2>My Marks</h2>
 
@@ -67,6 +76,7 @@
 
   <script>
     (async function () {
+
       // Load student profile
       try {
         const pRes = await api('/me/profile');
@@ -102,10 +112,25 @@
           '<tr><td colspan="4">' + e.message + '</td></tr>';
       }
 
-      // Load student marks
+      // Load student marks and GPA
       try {
         const mRes = await api('/me/marks');
         const rows = mRes.marks || mRes.data || [];
+
+        // Display GPA returned by the backend
+        const gpaElement = document.getElementById('gpa-value');
+
+        if (mRes.gpa === null || mRes.gpa === undefined) {
+          gpaElement.textContent = 'Not available';
+        } else {
+          const gpa = Number(mRes.gpa);
+
+          gpaElement.textContent = Number.isFinite(gpa)
+            ? gpa.toFixed(2)
+            : 'Not available';
+        }
+
+        // Display student marks
         const tbody = document.querySelector('#marks-table tbody');
 
         tbody.innerHTML = rows.map(r =>
@@ -115,9 +140,13 @@
         ).join('');
 
       } catch (e) {
+        document.getElementById('gpa-value').textContent =
+          'Unable to load GPA';
+
         document.querySelector('#marks-table tbody').innerHTML =
           '<tr><td colspan="3">' + e.message + '</td></tr>';
       }
+
     })();
   </script>
 </body>
