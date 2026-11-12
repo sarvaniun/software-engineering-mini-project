@@ -7,6 +7,7 @@
   <title>Student · Student Record System</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
+
 <body data-role="student">
   <header class="topbar">
     <h1>Student Dashboard</h1>
@@ -17,11 +18,13 @@
   </header>
 
   <main>
+    <!-- Student Profile -->
     <section class="panel" id="profile-panel">
       <h2>My Profile</h2>
       <div id="profile"></div>
     </section>
 
+    <!-- Student Attendance -->
     <section class="panel" id="attendance-panel">
       <h2>My Attendance</h2>
       <div class="table-wrap">
@@ -39,14 +42,20 @@
       </div>
     </section>
 
-    <!-- GPA section -->
+    <!-- GPA Section -->
     <section class="panel" id="gpa-panel">
       <h2>My GPA</h2>
       <p id="gpa-value">Loading...</p>
     </section>
 
+    <!-- Student Marks and Mark Sheet -->
     <section class="panel" id="marks-panel">
       <h2>My Marks</h2>
+
+      <p>
+        <a href="/marksheet.html">View / Download Mark Sheet</a>
+      </p>
+
       <div class="table-wrap">
         <table id="marks-table">
           <thead>
@@ -67,6 +76,8 @@
 
   <script>
     (async function () {
+
+      // Load student profile
       try {
         const pRes = await api('/me/profile');
         const p = pRes.profile || pRes.student || pRes.data || {};
@@ -78,10 +89,12 @@
           '<p><strong>Semester:</strong> ' + (p.semester || '') + '</p>' +
           '<p><strong>Email:</strong> ' + (p.email || '') + '</p>' +
           '<p><strong>Phone:</strong> ' + (p.phone || '') + '</p>';
+
       } catch (e) {
         document.getElementById('profile').textContent = e.message;
       }
 
+      // Load student attendance
       try {
         const aRes = await api('/me/attendance');
         const rows = aRes.attendance || aRes.data || [];
@@ -93,16 +106,18 @@
           '</td><td>' + r.present +
           '</td><td>' + r.percentage + '</td></tr>'
         ).join('');
+
       } catch (e) {
         document.querySelector('#attendance-table tbody').innerHTML =
           '<tr><td colspan="4">' + e.message + '</td></tr>';
       }
 
+      // Load student marks and GPA
       try {
         const mRes = await api('/me/marks');
         const rows = mRes.marks || mRes.data || [];
 
-        // Display the GPA returned by the backend
+        // Display GPA returned by the backend
         const gpaElement = document.getElementById('gpa-value');
 
         if (mRes.gpa === null || mRes.gpa === undefined) {
@@ -131,6 +146,7 @@
         document.querySelector('#marks-table tbody').innerHTML =
           '<tr><td colspan="3">' + e.message + '</td></tr>';
       }
+
     })();
   </script>
 </body>
