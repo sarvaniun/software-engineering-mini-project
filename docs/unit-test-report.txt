@@ -1,0 +1,193 @@
+PASS tests/attendance.test.js
+  attendancePercent
+    ✓ calculates the attendance percentage correctly (17 ms)
+    ✓ returns zero when no classes have been attended (3 ms)
+    ✓ returns zero when no classes have taken place (3 ms)
+    ✓ rounds percentages to two decimal places (2 ms)
+    ✓ rejects invalid attendance counts (19 ms)
+
+PASS tests/transaction.test.js
+  db.transaction (SRSSR-004: audit rows commit with their change)
+    ✓ commits and releases the connection when the callback succeeds (8 ms)
+    ✓ rolls back, rethrows and releases when the callback fails (20 ms)
+
+PASS tests/gpa.test.js
+  gradePoint
+    ✓ 100 out of 100 gives 10 points (16 ms)
+    ✓ 90 out of 100 gives 10 points (2 ms)
+    ✓ 89.99 out of 100 gives 9 points (2 ms)
+    ✓ 80 out of 100 gives 9 points (1 ms)
+    ✓ 79.99 out of 100 gives 8 points (2 ms)
+    ✓ 70 out of 100 gives 8 points (1 ms)
+    ✓ 69.99 out of 100 gives 7 points (5 ms)
+    ✓ 60 out of 100 gives 7 points (1 ms)
+    ✓ 59.99 out of 100 gives 6 points (4 ms)
+    ✓ 50 out of 100 gives 6 points (2 ms)
+    ✓ 49.99 out of 100 gives 5 points (2 ms)
+    ✓ 40 out of 100 gives 5 points (2 ms)
+    ✓ 39 out of 100 gives 0 points (2 ms)
+    ✓ 0 out of 100 gives 0 points (2 ms)
+    ✓ uses percentage when maximum marks is not 100 (2 ms)
+    ✓ supports numeric strings returned by the database (1 ms)
+    ✓ returns zero for invalid maximum marks (6 ms)
+    ✓ returns zero for nonnumeric or nonfinite marks (2 ms)
+    ✓ defaults maximum marks to 100 when undefined (2 ms)
+  calculateGpa
+    ✓ TC11: reproduces the hand-worked example exactly (2 ms)
+    ✓ weights subjects by their credits (3 ms)
+    ✓ includes failed subject credits in the denominator (1 ms)
+    ✓ returns null when there are no subjects (2 ms)
+    ✓ returns null when total credits are zero (2 ms)
+    ✓ supports numeric database strings (1 ms)
+    ✓ ignores subjects with invalid or nonpositive credits (2 ms)
+    ✓ returns null when no subjects have valid positive credits (2 ms)
+  calculateGpa with weights
+    ✓ applies weights to subjects correctly (3 ms)
+    ✓ defaults to no weights if weights object is empty (3 ms)
+    ✓ defaults to no weights when weights argument is omitted (2 ms)
+    ✓ ignores weights for subject ids that are not present (2 ms)
+    ✓ ignores invalid or nonpositive weights (treated as 1) (2 ms)
+    ✓ weighted failed subject still counts in the denominator (2 ms)
+
+PASS tests/health.test.js
+  GET /api/health
+    ✓ returns status ok (128 ms)
+
+PASS tests/session.test.js
+  session expiry (SRSSR-005, SRSF-004)
+    ✓ rejects an expired token with TOKEN_EXPIRED (125 ms)
+    ✓ still accepts a token that has not expired (28 ms)
+
+PASS tests/roles.test.js
+  requireRole (SRSSR-003)
+    ✓ blocks a student from an admin-only action (403) (15 ms)
+    ✓ blocks faculty from an admin-only action (403) (2 ms)
+    ✓ blocks admin from a faculty-only action (403) (3 ms)
+    ✓ lets an allowed role through (2 ms)
+    ✓ supports several allowed roles (2 ms)
+    ✓ returns 401 if nobody is logged in (3 ms)
+  global login safety net
+    ✓ rejects an /api route without a token (107 ms)
+    ✓ still allows /api/health and /api/login without a token (62 ms)
+
+PASS tests/me.test.js
+  GET /api/me/profile
+    ✓ returns the logged-in student profile (116 ms)
+    ✓ returns 403 for a non-student (19 ms)
+  GET /api/me/attendance
+    ✓ returns per-subject attendance (26 ms)
+  GET /api/me/marks
+    ✓ returns marks list, credits, and GPA (20 ms)
+
+PASS tests/reports.routes.test.js
+  GET /api/reports/branch
+    ✓ rejects requests without authentication (105 ms)
+    ✓ rejects students accessing the report (39 ms)
+    ✓ rejects invalid branch or semester (20 ms)
+    ✓ returns student records and class averages (23 ms)
+    ✓ returns zero averages when the branch has no students (14 ms)
+
+PASS tests/attendance.routes.test.js
+  Attendance API — access control
+    ✓ rejects requests without a token (110 ms)
+    ✓ rejects student attendance marking (31 ms)
+    ✓ rejects malformed attendance payloads (13 ms)
+  POST /api/attendance
+    ✓ saves attendance and returns the percentage (16 ms)
+    ✓ rejects a subject the faculty member does not teach (14 ms)
+    ✓ rejects duplicate student IDs in one request (10 ms)
+  GET /api/attendance/subjects
+    ✓ lists subjects assigned to the faculty member (15 ms)
+
+PASS tests/marks.routes.test.js
+  POST /api/marks
+    ✓ rejects requests without authentication (119 ms)
+    ✓ rejects students trying to enter marks (35 ms)
+    ✓ rejects an empty records array (15 ms)
+    ✓ rejects negative marks before querying the database (16 ms)
+    ✓ rejects marks above the subject maximum (16 ms)
+    ✓ rejects subjects not assigned to the faculty member (10 ms)
+    ✓ rejects duplicate student IDs in one request (8 ms)
+    ✓ saves marks and updates existing marks without duplicates (11 ms)
+    ✓ rejects students outside the selected subject class (11 ms)
+
+PASS tests/audit.test.js
+  audit_log writes (SRSSR-004)
+    ✓ deactivate writes a DEACTIVATE row for the admin (110 ms)
+    ✓ edit writes an UPDATE row with the changed fields (39 ms)
+    ✓ marks save writes one UPSERT row per student (14 ms)
+    ✓ attendance save writes one MARK row for the class (12 ms)
+  GET /api/students/:id/audit
+    ✓ returns the last editor for the admin (13 ms)
+    ✓ returns 403 for faculty (9 ms)
+
+PASS tests/stability.test.js
+  Invalid JSON body (SRS-NF-002)
+    ✓ returns 400 INVALID_JSON for malformed JSON on /api/login (125 ms)
+    ✓ returns 400 INVALID_JSON for non-JSON text sent as JSON (19 ms)
+    ✓ returns 413 PAYLOAD_TOO_LARGE for an oversized body (19 ms)
+    ✓ keeps serving requests after bad input (23 ms)
+  Unknown endpoints (SRS-NF-002)
+    ✓ returns 404 NOT_FOUND for /api/whatever with a valid token (14 ms)
+    ✓ returns 401 (not 404) for /api/whatever without a token (8 ms)
+  Error logging never leaks secrets (SRS-NF-002)
+    ✓ does not log the raw body when JSON parsing fails (10 ms)
+    ✓ does not log bearer tokens or query strings (10 ms)
+
+PASS tests/password.test.js
+  password hashing (SRSSR-002)
+    ✓ never returns the plain password (313 ms)
+    ✓ accepts the correct password (467 ms)
+    ✓ rejects a wrong password (465 ms)
+    ✓ hashes the same password differently each time (salted) (422 ms)
+
+PASS tests/students.test.js
+  POST /api/students (SRSF-010, TC5)
+    ✓ creates a student and returns 201 (325 ms)
+    ✓ returns 409 for a duplicate roll_no (15 ms)
+    ✓ returns 403 for a non-admin (9 ms)
+    ✓ returns 400 when required fields are missing (8 ms)
+  GET /api/students
+    ✓ returns the student list (13 ms)
+  GET /api/students search (SRSF-014, TC9)
+    ✓ passes q, branch and semester to SQL as placeholders (10 ms)
+    ✓ returns 400 for a semester outside 1-8 (7 ms)
+  GET /api/students/:id
+    ✓ returns one student (7 ms)
+  PATCH /api/students/:id/deactivate
+    ✓ deactivates a student and returns 200 (9 ms)
+    ✓ returns 400 for a non-numeric id (8 ms)
+    ✓ returns 404 for a non-existent id (7 ms)
+    ✓ returns 403 for a non-admin (6 ms)
+  GET /api/students?inactive=1
+    ✓ includes inactive students when requested (6 ms)
+  PUT /api/students/:id
+    ✓ updates a student and returns 200 (8 ms)
+    ✓ saves cleared optional fields as null (6 ms)
+    ✓ returns 404 for a non-existent id (6 ms)
+    ✓ returns 400 for a non-numeric id (7 ms)
+    ✓ returns 403 for a non-admin (6 ms)
+
+PASS tests/auth.test.js
+  POST /api/login (SRSF-001, TC1)
+    ✓ returns a token and role for correct credentials (288 ms)
+    ✓ returns 401 for a wrong password (202 ms)
+    ✓ returns 401 for an unknown user (7 ms)
+    ✓ returns 400 when a field is missing (7 ms)
+  verifyToken via GET /api/whoami
+    ✓ returns 401 without a token (9 ms)
+    ✓ returns 401 with a forged token (7 ms)
+    ✓ returns the user with a valid token (7 ms)
+
+PASS tests/lockout.test.js
+  account lockout (SRSF-003, TC3)
+    ✓ counts a wrong password (271 ms)
+    ✓ locks the account on the 3rd wrong password (197 ms)
+    ✓ returns 423 while locked, even with the correct password (7 ms)
+    ✓ resets the counter after a successful login (198 ms)
+
+Test Suites: 16 passed, 16 total
+Tests:       123 passed, 123 total
+Snapshots:   0 total
+Time:        4.516 s, estimated 5 s
+Ran all test suites.
