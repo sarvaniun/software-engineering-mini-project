@@ -1,0 +1,41 @@
+
+name: CD
+
+# Continuous Delivery: every push to main (and every version tag) is tested,
+# packaged as a Docker image, smoke-tested, and published. Version tags also get a GitHub Release.
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  IMAGE: ghcr.io/${{ github.repository }}
+
+jobs:
+  test:
+    name: 1. Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v5
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies (npm ci)
+        run: npm ci
+      - name: Run unit & API tests (Jest) with coverage
+        run: >
+          npx jest --ci --verbose
+          --coverage --collectCoverageFrom='src/**/*.js'
+          --coverageReporters=text --coverageReporters=json-summary
+          --json --outputFile=test-results.json
+      - name: Publish test summary
+        if: always()
+        run: node scripts/test-summary.js test-results.json coverage/coverage-summary.json
