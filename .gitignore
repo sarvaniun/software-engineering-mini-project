@@ -8,3 +8,4 @@ coverage/
 certs/*.key
 certs/*.crt
 certs/
+test-results.json
