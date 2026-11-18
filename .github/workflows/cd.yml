@@ -39,3 +39,42 @@ jobs:
       - name: Publish test summary
         if: always()
         run: node scripts/test-summary.js test-results.json coverage/coverage-summary.json
+
+  build:
+    name: 2. Build & smoke test
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v5
+      - name: Build Docker image
+        run: docker build -t srs:${{ github.sha }} .
+      - name: Start container
+        run: docker run -d --name srs -p 3000:3000 -e JWT_SECRET=ci-smoke-test srs:${{ github.sha }}
+      - name: Smoke test - health check
+        run: |
+          for i in $(seq 1 20); do
+            if curl -fsS http://localhost:3000/api/health | grep -q '"ok"'; then
+              echo "Health check passed"; exit 0
+            fi
+            sleep 1
+          done
+          echo "Health check failed"; docker logs srs; exit 1
+      - name: Smoke test - login page is served
+        run: curl -fsS http://localhost:3000/ | grep -qi '<form' && echo "Login page served"
+      - name: Smoke test - API rejects requests without login
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/api/students)
+          echo "GET /api/students without token -> $code"
+          test "$code" = "401"
+      - name: Stop container
+        if: always()
+        run: docker rm -f srs || true
+      - name: Save image for the next stage
+        run: docker save srs:${{ github.sha }} | gzip > image.tar.gz
+      - name: Upload image
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-image
+          path: image.tar.gz
+          retention-days: 7
