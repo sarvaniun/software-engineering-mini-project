@@ -1,0 +1,12 @@
+
+node_modules
+.env
+certs
+backups
+coverage
+demo
+docs
+.git
+.github
+tests
+test-results.json
