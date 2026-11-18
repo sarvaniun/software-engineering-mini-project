@@ -78,3 +78,41 @@ jobs:
           name: docker-image
           path: image.tar.gz
           retention-days: 7
+
+  publish:
+    name: 3. Publish image
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download image
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-image
+      - name: Load image
+        run: gunzip -c image.tar.gz | docker load
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Tag and push image
+        run: |
+          docker tag srs:${{ github.sha }} $IMAGE:${{ github.sha }}
+          docker tag srs:${{ github.sha }} $IMAGE:latest
+          docker push $IMAGE:${{ github.sha }}
+          docker push $IMAGE:latest
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            docker tag srs:${{ github.sha }} $IMAGE:$GITHUB_REF_NAME
+            docker push $IMAGE:$GITHUB_REF_NAME
+          fi
+      - name: Write deployment summary
+        run: |
+          {
+            echo "## 🚀 Image published"
+            echo ""
+            echo "- \`$IMAGE:latest\`"
+            echo "- \`$IMAGE:${{ github.sha }}\`"
+            echo ""
+            echo "Run it with: \`docker run -p 3000:3000 --env-file .env $IMAGE:latest\`"
+          } >> "$GITHUB_STEP_SUMMARY"
