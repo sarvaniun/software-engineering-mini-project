@@ -34,6 +34,7 @@ This log records every place where the implementation, or our own documents, dif
 | --- | --- | --- | --- | --- |
 | 17 | Backlog vs SRS | SRS lists only functional/non-functional requirements | Added SETUP, TEST, DEMO and DOC items; split SRSF-001 into API (#5) and UI (#6) | Real project work not covered by requirements; keeps items at most 5 points |
 | 18 | Sprint plan | Sprint 0 (dry run) items planned for 12–16 Oct | Unfinished Sprint 0 items moved into Sprint 1 on 19 Oct | Honest carry-over; allowed backlog change on 19 Oct |
+| 19 | SAD §3.6, STP §5 | Only CI (automated tests) was planned; no deployment pipeline | Added a CD pipeline: test → Docker build + smoke test → publish image to GHCR → GitHub Release on version tags | Evaluation feedback: CD with several stages, visible test summaries |
 
 ## D. Values decided during implementation
 
